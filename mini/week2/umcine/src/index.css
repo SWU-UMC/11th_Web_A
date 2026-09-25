@@ -1,0 +1,26 @@
+/* 모든 요소가 width/height 안에 padding과 border를 포함하도록 설정 */
+* {
+  box-sizing: border-box;
+}
+
+/* 브라우저 기본 여백 제거 */
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+/* 페이지 전체 기본 스타일 */
+body {
+  margin: 0;
+  font-family: Pretendard, sans-serif;
+  background-color: #f6f7f9;
+}
+
+/* 버튼이 브라우저 기본 폰트를 따로 사용하지 않도록 설정 */
+button {
+  font-family: inherit;
+}

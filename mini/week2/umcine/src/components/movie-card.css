@@ -1,0 +1,78 @@
+/* 영화 카드 전체 */
+.movie-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 포스터 영역 */
+.movie-poster {
+  position: relative;
+  width: 100%;
+  height: 274px;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+/* 포스터 이미지 */
+.movie-poster > img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+/* 영화 제목 */
+.movie-title {
+  margin: 0;
+  padding-top: 5px;
+  font-family: Pretendard, sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 17px;
+  letter-spacing: 0;
+  color: #17191e;
+}
+
+/* 개봉일 */
+.movie-release-date {
+  margin: 0;
+  font-family: Pretendard, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 14px;
+  letter-spacing: 0;
+  color: #969da8;
+}
+
+/* 북마크 버튼 */
+.bookmark-button {
+  position: absolute;
+  top: 7.5px;
+  right: 6px;
+  width: 34px;
+  height: 34px;
+  padding: 7.5px 6px;
+  border: 1px solid #ffffff;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #17191e;
+  cursor: pointer;
+}
+
+/* 북마크 아이콘 */
+.bookmark-button img {
+  width: 24px;
+  height: 24px;
+}
+
+/* 활성화된 북마크 버튼 */
+.bookmark-button.active {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
