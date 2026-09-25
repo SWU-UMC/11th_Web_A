@@ -1,0 +1,54 @@
+body {
+  margin: 0;
+  background: #f1f8f9;
+  color: #0f172a;
+}
+
+.card {
+  box-sizing: border-box;
+  width: 90%;
+  max-width: 520px;
+  margin: 40px auto;
+  padding: 32px;
+  border: 1px solid rgb(124, 208, 193);
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.skill {
+  padding: 6px 10px;
+  border-radius: 16px;
+  background: rgb(124, 208, 193);
+  color: #ffffff;
+}
+
+.computer-img {
+    width: 400px;
+}
+
+button {
+  margin-top: 16px;
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: rgb(124, 208, 193);
+  color: #ffffff;
+}
+
+button:hover {
+  background: rgb(38, 168, 144);
+}
+
+@media (max-width: 480px) {
+    .card {
+        padding: 20px;
+    }
+}
