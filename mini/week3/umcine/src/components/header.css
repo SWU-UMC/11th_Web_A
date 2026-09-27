@@ -1,0 +1,130 @@
+/* 헤더 전체 */
+.header {
+  height: 91px;
+  padding: 24px 80px;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background-color: #ffffff;
+  border-bottom: 1px solid #e3e6eb;
+}
+
+/* 헤더 왼쪽 영역: 로고 + 내비게이션 */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 42px;
+}
+
+/* UMCine 로고 영역: 아이콘 + 로고 텍스트 */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 로고 아이콘을 감싸는 박스 */
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 2px solid #17191e;
+}
+
+/* 로고 아이콘 이미지 */
+.logo-icon img {
+  width: 24px;
+  height: 24px;
+}
+
+/* UMCine 로고 텍스트 */
+.header-logo span {
+  font-family: Pretendard, sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  line-height: 100%;
+  letter-spacing: -0.7px;
+  color: #17191e;
+}
+
+/* 내비게이션 메뉴: 영화 / 검색 / 내 정보 */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+/* 내비게이션 메뉴 공통 텍스트 */
+.header-nav a {
+  font-family: Pretendard, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 100%;
+  letter-spacing: 0;
+  text-align: center;
+
+  color: #606774;
+  text-decoration: none;
+}
+
+/* 현재 선택된 내비게이션 메뉴 */
+.header-nav a.active {
+  color: #17191e;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* 헤더 오른쪽 영역: 검색 버튼 + 로그인 버튼 */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 검색 버튼 */
+.search-button {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #ffffff;
+  border: 1px solid #e3e6eb;
+}
+
+/* 검색 아이콘 */
+.search-button img {
+  width: 24px;
+  height: 24px;
+}
+
+/* 로그인 버튼 */
+.login-button {
+  width: 71px;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  box-sizing: border-box;
+
+  background-color: #2563eb;
+  border: 1px solid #ffffff;
+
+  font-family: Pretendard, sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 100%;
+  color: #ffffff;
+}

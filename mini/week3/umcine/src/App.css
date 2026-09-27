@@ -1,0 +1,25 @@
+/* 영화 목록 페이지 전체 */
+.movie-page {
+  box-sizing: border-box;
+  min-height: calc(100vh - 91px - 57px);
+  padding: 24px 80px;
+  background-color: #f6f7f9;
+}
+
+/* 페이지 제목 */
+.page-title {
+  margin: 0 0 20px;
+
+  font-family: Pretendard, sans-serif;
+  font-size: 38px;
+  font-weight: 700;
+  line-height: 44px;
+  letter-spacing: -1.71px;
+  text-align: left;
+  color: #17191e;
+}
+
+/* 카드 미리보기 */
+.movie-card-preview {
+  width: 241.6px;
+}
