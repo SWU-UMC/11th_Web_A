@@ -63,11 +63,12 @@ export function SearchPage() {
         <input
           ref={inputRef}
           className={cn(
-            "min-w-0 flex-1 bg-transparent py-2 text-[14px] leading-5 outline-none placeholder:text-[#969da8] [&::-webkit-search-cancel-button]:appearance-none",
+            "min-w-0 flex-1 bg-transparent py-2 text-[14px] font-bold leading-none text-[#17191e] outline-none placeholder:font-normal placeholder:text-[#969da8] [&::-webkit-search-cancel-button]:appearance-none",
             !hasQuery && "py-0 text-[17px] font-normal tracking-normal",
           )}
           type="search"
           name="query"
+          autoComplete="off"
           aria-label="검색어"
           placeholder="예: 스파이더맨"
           value={searchText}
