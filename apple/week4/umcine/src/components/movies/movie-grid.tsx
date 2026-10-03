@@ -1,4 +1,4 @@
-import type { Movie } from '../types/movie';
+import type { Movie } from "../../types/movie";
 import MovieCard from './movie-card';
 
 // MovieGrid 컴포넌트 규칙 정의

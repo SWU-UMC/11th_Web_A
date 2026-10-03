@@ -29,7 +29,7 @@ export function MovieDetailPage() {
             className="flex items-center text-white no-underline text-sm font-medium opacity-90"
             to="/"
           >
-            <img src="/icons/chevron-left.svg" class="invert brightness-0" />
+            <img src="/icons/chevron-left.svg" className="invert brightness-0" />
             <span>영화 목록</span>
           </Link>
           <div className="text-white mb-6">

@@ -20,7 +20,7 @@ export function Header() {
         </div>
         <div className="flex items-center gap-4">
           <Link to="/search" className="flex items-center justify-center p-2 border border-gray-200 rounded-lg bg-white" aria-label="검색">
-            <img src="/icons/search.svg" alt="검색 아이콘" class="w-5 h-5" />
+            <img src="/icons/search.svg" alt="검색 아이콘" className="w-5 h-5" />
           </Link>
           <button type="button" className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold transition-colors duration-200 hover:bg-blue-700">로그인</button>
         </div>
