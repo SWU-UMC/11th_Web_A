@@ -3,6 +3,7 @@ import { useState, type SubmitEvent } from "react";
 import { movies } from "../../data/movies";
 import type { Movie } from "../../types/movie";
 import { cn } from "../../utils/cn";
+import { useBookmarkStore } from "../../stores/bookmark-store";
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
@@ -21,7 +22,15 @@ export function MovieDetailPage() {
 }
 
 function MovieDetail({ movie }: { movie: Movie }) {
-  const [isBookmarked, setIsBookmarked] = useState(movie.isBookmarked);
+  
+  const isBookmarked = useBookmarkStore((state) =>
+    state.bookmarkedMovieIds.includes(movie.id),
+  );
+
+  const toggleBookmark = useBookmarkStore(
+    (state) => state.toggleBookmark,
+  );
+
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
   const [savedRating, setSavedRating] = useState<{ rating: number; review: string } | null>(null);
@@ -69,7 +78,7 @@ function MovieDetail({ movie }: { movie: Movie }) {
           <button
             type="button"
             aria-pressed={isBookmarked}
-            onClick={() => setIsBookmarked((current) => !current)}
+            onClick={() => toggleBookmark(movie.id)}
             className={cn(
               "inline-flex h-[42px] min-w-[107px] cursor-pointer items-center justify-center gap-2 rounded-lg border px-4 text-[14px] font-extrabold leading-[17px] text-white",
               isBookmarked ? "border-[#1d4ed8] bg-[#1d4ed8]" : "border-white bg-[#2563eb]",
