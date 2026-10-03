@@ -1,5 +1,6 @@
 import { Link, useParams } from "@tanstack/react-router";
 import { movies } from "../../data/movies";
+import { DetailBookmarkButton } from "../../components/detail-bookmark-button";
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
@@ -29,7 +30,10 @@ export function MovieDetailPage() {
             className="flex items-center text-white no-underline text-sm font-medium opacity-90"
             to="/"
           >
-            <img src="/icons/chevron-left.svg" className="invert brightness-0" />
+            <img
+              src="/icons/chevron-left.svg"
+              className="invert brightness-0"
+            />
             <span>영화 목록</span>
           </Link>
           <div className="text-white mb-6">
@@ -59,17 +63,7 @@ export function MovieDetailPage() {
             <p className="text-sm leading-[1.6] text-[#555] mb-6">
               {movie.overview}
             </p>
-            <button
-              type="button"
-              className="inline-flex items-center gap-1.5 pt-2.5 pb-2.5 pr-5 pl-3.75 bg-blue-600 text-white border-none rounded-md text-sm font-semibold cursor-pointer"
-            >
-              <img
-                src="/icons/bookmark-outline.svg"
-                alt=""
-                className="w-5 h-5 invert brightness-0"
-              />
-              즐겨찾기
-            </button>
+            <DetailBookmarkButton movieId={movie.id} />
           </div>
         </div>
 

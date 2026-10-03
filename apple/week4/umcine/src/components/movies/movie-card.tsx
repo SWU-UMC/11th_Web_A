@@ -1,6 +1,6 @@
 import type { Movie } from "../../types/movie";
-import { Link } from '@tanstack/react-router';
-import { BookmarkButton } from "../bookmark-button";
+import { Link } from "@tanstack/react-router";
+import { ListBookmarkButton } from "../list-bookmark-button";
 
 // MovieCard 컴포넌트 규칙
 interface MovieCardProps {
@@ -11,17 +11,23 @@ interface MovieCardProps {
 // MovieCard 컴포넌트
 export default function MovieCard({ movie }: MovieCardProps) {
   return (
-    <Link to="/movies/$movieId" params={{ movieId: String(movie.id) }} className="flex flex-col no-underline">
+    <Link
+      to="/movies/$movieId"
+      params={{ movieId: String(movie.id) }}
+      className="flex flex-col no-underline"
+    >
       <div className="relative w-full aspect-2/3 rounded-xl overflow-hidden bg-gray-200">
         <img
           src={movie.posterPath}
           alt={`${movie.title} 포스터`}
           className="w-full h-full object-cover block"
         />
-        <BookmarkButton movieId={movie.id}/>
+        <ListBookmarkButton movieId={movie.id} />
       </div>
       <div className="mt-2.5">
-        <h3 className="text-sm font-bold text-[#111111] truncate mb-1">{movie.title}</h3>
+        <h3 className="text-sm font-bold text-[#111111] truncate mb-1">
+          {movie.title}
+        </h3>
         <p className="text-[13px] text-[#888888]">{movie.releaseDate}</p>
       </div>
     </Link>
