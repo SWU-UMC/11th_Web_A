@@ -6,6 +6,8 @@ import { getTmdbBackdropUrl, getTmdbPosterUrl } from "../../utils/movies/tmdb-im
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import { cn } from "../../utils/cn";
 import { useBookmarkStore } from "../../stores/bookmark-store";
+import { isHTTPError } from "ky";
+import { createRating } from "../../api/ratings/create-rating";
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
@@ -116,8 +118,9 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
     review: string;
   } | null>(null);
   const [ratingError, setRatingError] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  function handleSaveRating(event: SubmitEvent<HTMLFormElement>) {
+  async function handleSaveRating(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (rating === 0) {
@@ -126,10 +129,24 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
     }
 
     setRatingError(false);
-    setSavedRating({
+    setSaveError(null);
+
+    // 백엔드에 평점 저장 요청
+    try {
+      await createRating(movie.id, {score: rating, comment: review.trim() || null});
+
+      setSavedRating({
       rating,
       review: review.trim(),
-    });
+      });
+    } catch (error) {
+      setSaveError(
+        isHTTPError(error) && error.response.status === 409
+        ? "이미 평점을 남긴 영화예요."
+        : "평점을 저장하지 못했어요.",
+      );
+    }
+    
   }
 
   return (
@@ -328,8 +345,13 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
               className="text-[12px] leading-5 text-[#606774]"
             >
               {savedRating.rating}
-              {savedRating.review ? "점과 후기를" : "점을"} 현재 화면에
-              저장했어요.
+              {savedRating.review ? "점과 후기를" : "점을"} 저장했어요.
+            </p>
+          )}
+
+          {saveError && (
+            <p role="alert" className="text-[12px] text-red-600">
+              {saveError}
             </p>
           )}
         </form>
