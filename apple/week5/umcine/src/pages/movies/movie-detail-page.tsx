@@ -1,25 +1,82 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { movies } from "../../data/movies";
+import { useEffect, useState } from "react";
 import { DetailBookmarkButton } from "../../components/detail-bookmark-button";
+import { getMovieDetail } from "../../api/movies/get-movie-detail";
+import { getMovieDetailErrorMessage } from "./../../utils/movies/get-movie-detail-error-message";
+import type { TmdbMovieDetail } from "../../api/movies/models";
+import { getTmdbBackdropUrl } from "../../utils/movies/tmdb-image";
+import { getTmdbPosterUrl } from "./../../utils/movies/tmdb-image";
+
+// runtime이 숫자일 때 분 값을 시간과 분으로 바꿔 표시 (null이면 정보 없음)
+function formatRuntime(runtime: number | null) {
+  if (!runtime) return "상영 시간 정보가 없어요";
+  const hours = Math.floor(runtime / 60);
+  const minutes = runtime % 60;
+  return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+}
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
-  const movie = movies.find((item) => item.id === Number(movieId));
 
-  if (!movie) {
-    return (
-      <main className="p-25 text-center text-[#888]">
-        영화를 찾을 수 없어요.
-      </main>
-    );
+  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadMovieDetail() {
+      setIsLoading(true);
+      setErrorMessage(null);
+
+      // 잘못된 영화 번호 (숫자가 아니거나 올바르지 않은 형식인 경우 검증)
+      const parsedMovieId = Number(movieId);
+      if (isNaN(parsedMovieId) || parsedMovieId <= 0) {
+        if (!ignore) {
+          setErrorMessage("올바르지 않은 영화 번호예요.");
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const data = await getMovieDetail(Number(movieId));
+        if (!ignore) setMovie(data);
+      } catch (error) {
+        if (!ignore) {
+          setErrorMessage(getMovieDetailErrorMessage(error));
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadMovieDetail();
+
+    return () => {
+      ignore = true;
+    };
+  }, [movieId]);
+
+  if (isLoading) {
+    return <main className="p-25 text-center text-[#888]">로딩 중...</main>;
   }
 
+  if (errorMessage || !movie) {
+    return <main className="p-25 text-center text-[#888]">{errorMessage}</main>;
+  }
+
+  const genres = movie.genres?.length
+    ? movie.genres.map((genre) => genre.name).join(", ")
+    : "장르 정보 없음";
   return (
     <main className="w-full bg-white text-[#111] font-sans">
       <div className="relative w-full h-95 bg-black overflow-hidden">
         <img
           className="absolute inset-0 w-full h-full object-cover object-center"
-          src={movie.backdropPath}
+          src={getTmdbBackdropUrl(movie.backdrop_path) ?? undefined}
           alt=""
           aria-hidden="true"
         />
@@ -40,9 +97,9 @@ export function MovieDetailPage() {
             <h1 className="text-[34px] font-extrabold mb-2 tracking-[-0.5px] text-white">
               {movie.title}
             </h1>
-            <p className="text-sm text-white/70 mb-2">{movie.originalTitle}</p>
+            <p className="text-sm text-white/70 mb-2">{movie.original_title}</p>
             <p className="text-[13px] text-white/90 m-0">
-              {movie.releaseDate} · {movie.genres.join(" · ")} · {movie.runtime}
+              {movie.release_date} · {genres} · {formatRuntime(movie.runtime)}
             </p>
           </div>
         </div>
@@ -52,7 +109,7 @@ export function MovieDetailPage() {
         <div className="flex gap-7 items-start">
           <img
             className="w-50 h-72.5 object-cover rounded-lg relative z-20 shadow-[0_10px_20px_rgba(0,0,0,0.2)] shrink-0"
-            src={movie.posterPath}
+            src={getTmdbPosterUrl(movie.poster_path) ?? undefined}
             alt={`${movie.title} 포스터`}
           />
 
