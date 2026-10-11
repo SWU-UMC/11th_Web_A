@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState, type SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 import type { TmdbMovieListItem } from "../../api/movies/models";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 import { searchMovies } from "../../api/movies/search-movies";
@@ -17,44 +17,31 @@ export function SearchPage() {
 
   const normalizedQuery = query?.trim();
 
-  // URL의 query가 바뀔 때 입력창 상태도 동기화
-  useEffect(() => {
-    setSearchText(query ?? "");
-  }, [query]);
+  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextQuery = searchText.trim();
 
-  useEffect(() => {
-    let ignore = false;
-    setMovies([]);
-    setErrorMessage(null);
-
-    if (!normalizedQuery) {
-      setIsLoading(false);
+    if (!nextQuery) {
+      navigate({ search: {} });
       return;
     }
 
     setIsLoading(true);
+    setErrorMessage(null);
 
-    searchMovies({ query: normalizedQuery })
+    searchMovies({ query: nextQuery })
       .then((response) => {
-        if (!ignore) setMovies(response.results);
+        setMovies(response.results);
+        setIsLoading(false);
       })
       .catch(() => {
-        if (!ignore) setErrorMessage("검색 결과를 불러오지 못했어요.");
-      })
-      .finally(() => {
-        if (!ignore) setIsLoading(false);
+        setErrorMessage("검색 결과를 불러오지 못했어요.");
+        setMovies([]);
+        setIsLoading(false);
       });
 
-    return () => {
-      ignore = true;
-    };
-  }, [query]);
-
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const nextQuery = searchText.trim();
     navigate({
-      search: nextQuery ? { query: nextQuery } : {},
+      search: { query: nextQuery },
     });
   }
 
