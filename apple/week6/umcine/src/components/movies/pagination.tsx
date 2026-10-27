@@ -7,12 +7,24 @@ interface PaginationProps {
   onPageChange: (page: number) => void; // 페이지 변경 시 호출되는 함수
 }
 
+const PAGE_GROUP_SIZE = 10;
+
 // Pagination 컴포넌트
 export default function Pagination({
   currentPage,
   totalPages,
   onPageChange,
 }: PaginationProps) {
+  // 현재 페이지가 속한 그룹 (1~10 → 0, 11~20 → 1, ...)
+  const groupIndex = Math.floor((currentPage - 1) / PAGE_GROUP_SIZE);
+  const startPage = groupIndex * PAGE_GROUP_SIZE + 1;
+  const endPage = Math.min(startPage + PAGE_GROUP_SIZE - 1, totalPages);
+
+  const pages = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, i) => startPage + i,
+  );
+
   return (
     <nav className="flex justify-center items-center gap-2 mt-10">
       {/* 이전 페이지 버튼 */}
@@ -28,8 +40,7 @@ export default function Pagination({
       </button>
 
       {/* 페이지 번호 버튼 */}
-      {/* totalPages 개수만큼 [1, 2, 3, ...] 번호가 적힌 버튼 배열을 자동으로 생성 */}
-      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+      {pages.map((page) => (
         <button
           key={page}
           type="button"
