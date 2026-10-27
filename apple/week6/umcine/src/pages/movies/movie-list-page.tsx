@@ -30,14 +30,14 @@ export function MovieListPage() {
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage);
   };
-  
 
   // 북마크 버튼을 눌렀을 때 실행되는 함수
   const handleToggleBookmark = (id: number) => {
-    setBookmarkedIds((prev) =>
-      prev.includes(id)
-        ? prev.filter((bookmarkId) => bookmarkId !== id) // 이미 북마크 되어있다면 제거
-        : [...prev, id] // 아니면 추가
+    setBookmarkedIds(
+      (prev) =>
+        prev.includes(id)
+          ? prev.filter((bookmarkId) => bookmarkId !== id) // 이미 북마크 되어있다면 제거
+          : [...prev, id], // 아니면 추가
     );
   };
 
@@ -45,14 +45,14 @@ export function MovieListPage() {
     <div>
       {/* 메인 콘텐츠 */}
       <main className="flex-1 max-w-300 w-full mx-auto px-6 pt-8 pb-15">
-      {/* 데이터를 가져오는 중인지, 오류가 발생했는지 순서대로 확인 */}
-      {moviesQuery.isPending ? (
-        <p>영화를 불러오는 중이에요.</p> // 기존 로딩 UI가 있다면 재사용
-      ) : moviesQuery.isError ? (
-        <p>{moviesQuery.error.message}</p> // 기존 오류 UI가 있다면 재사용
-      ) : movies.length === 0 ? (
-        <p>표시할 영화가 없어요.</p> // 기존 빈 목록 UI가 있다면 재사용
-      ) : (
+        {/* 데이터를 가져오는 중인지, 오류가 발생했는지 순서대로 확인 */}
+        {moviesQuery.isPending ? (
+          <p>영화를 불러오는 중이에요.</p> // 기존 로딩 UI가 있다면 재사용
+        ) : moviesQuery.isError ? (
+          <p>{moviesQuery.error.message}</p> // 기존 오류 UI가 있다면 재사용
+        ) : movies.length === 0 ? (
+          <p>표시할 영화가 없어요.</p> // 기존 빈 목록 UI가 있다면 재사용
+        ) : (
           <>
             {/* 영화 리스트(그리드 형태) - 현재 페이지의 10개 영화만 보여주기 */}
             <MovieGrid

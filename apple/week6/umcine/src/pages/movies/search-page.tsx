@@ -72,7 +72,9 @@ export function SearchPage() {
       {!normalizedQuery ? (
         <p className="py-15 text-center text-[#888]">검색어를 입력해 주세요.</p>
       ) : searchQuery.isLoading ? (
-        <p className="py-15 text-center text-[#888]">검색 결과를 불러오는 중이에요...</p>
+        <p className="py-15 text-center text-[#888]">
+          검색 결과를 불러오는 중이에요...
+        </p>
       ) : searchQuery.isError ? (
         <p className="py-15 text-center text-red-500">
           {searchQuery.error.message}
@@ -83,38 +85,40 @@ export function SearchPage() {
         <div>
           <div className="flex justify-between items-baseline mb-6">
             <h2 className="text-lg font-bold">‘{query}’ 검색 결과</h2>
-            <p className="text-[13px] text-[#888]">영화 {searchResults.length}편</p>
+            <p className="text-[13px] text-[#888]">
+              영화 {searchResults.length}편
+            </p>
           </div>
-          
+
           <ul className="grid grid-cols-2 gap-x-8 gap-y-6 list-none p-0 m-0">
             {searchResults.map((movie) => (
-                <li key={movie.id} className="flex gap-4">
-                  <img
-                    className="w-30 h-42.5 object-cover rounded-lg shrink-0"
-                    src={getTmdbPosterUrl(movie.poster_path) ?? undefined}
-                    alt={`${movie.title} 포스터`}
-                  />
-                  <div className="flex flex-col">
-                    <h3 className="text-base font-bold mb-1.5 m-0">
-                      {movie.title}
-                    </h3>
-                    <p className="text-[13px] text-[#888] mb-2.5 m-0">
-                      {movie.original_title} · {movie.release_date}
-                    </p>
-                    <p className="text-[13px] text-[#666] leading-normal mb-3 line-clamp-2">
-                      {movie.overview}
-                    </p>
-                    <Link
-                      className="text-[13px] font-semibold text-blue-600 no-underline mt-auto"
-                      to="/movies/$movieId"
-                      params={{ movieId: String(movie.id) }}
-                    >
-                      상세 보기 →
-                    </Link>
-                  </div>
-                </li>
-              ))}
-            </ul>
+              <li key={movie.id} className="flex gap-4">
+                <img
+                  className="w-30 h-42.5 object-cover rounded-lg shrink-0"
+                  src={getTmdbPosterUrl(movie.poster_path) ?? undefined}
+                  alt={`${movie.title} 포스터`}
+                />
+                <div className="flex flex-col">
+                  <h3 className="text-base font-bold mb-1.5 m-0">
+                    {movie.title}
+                  </h3>
+                  <p className="text-[13px] text-[#888] mb-2.5 m-0">
+                    {movie.original_title} · {movie.release_date}
+                  </p>
+                  <p className="text-[13px] text-[#666] leading-normal mb-3 line-clamp-2">
+                    {movie.overview}
+                  </p>
+                  <Link
+                    className="text-[13px] font-semibold text-blue-600 no-underline mt-auto"
+                    to="/movies/$movieId"
+                    params={{ movieId: String(movie.id) }}
+                  >
+                    상세 보기 →
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </main>
