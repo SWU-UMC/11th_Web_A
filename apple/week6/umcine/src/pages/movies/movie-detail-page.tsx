@@ -1,11 +1,10 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { DetailBookmarkButton } from "../../components/detail-bookmark-button";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { getMovieDetailErrorMessage } from "./../../utils/movies/get-movie-detail-error-message";
-import type { TmdbMovieDetail } from "../../api/movies/models";
 import { getTmdbBackdropUrl } from "../../utils/movies/tmdb-image";
 import { getTmdbPosterUrl } from "./../../utils/movies/tmdb-image";
+import { useQuery } from "@tanstack/react-query";
 
 // runtime이 숫자일 때 분 값을 시간과 분으로 바꿔 표시 (null이면 정보 없음)
 function formatRuntime(runtime: number | null) {
@@ -16,62 +15,36 @@ function formatRuntime(runtime: number | null) {
 }
 
 export function MovieDetailPage() {
-  const { movieId } = useParams({ from: "/movies/$movieId" });
+  const { movieId: movieIdParam } = useParams({ from: "/movies/$movieId" });
+  const movieId = Number(movieIdParam);
+  const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
 
-  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const movieDetailQuery = useQuery({
+    queryKey: ["movies", "detail", movieId],
+    queryFn: () => getMovieDetail(movieId),
+    enabled: isValidMovieId,
+  });  
 
-  useEffect(() => {
-    let ignore = false;
-
-    async function loadMovieDetail() {
-      setIsLoading(true);
-      setErrorMessage(null);
-
-      // 잘못된 영화 번호 (숫자가 아니거나 올바르지 않은 형식인 경우 검증)
-      const parsedMovieId = Number(movieId);
-      if (isNaN(parsedMovieId) || parsedMovieId <= 0) {
-        if (!ignore) {
-          setErrorMessage("올바르지 않은 영화 번호예요.");
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      try {
-        const data = await getMovieDetail(Number(movieId));
-        if (!ignore) setMovie(data);
-      } catch (error) {
-        if (!ignore) {
-          setErrorMessage(getMovieDetailErrorMessage(error));
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    loadMovieDetail();
-
-    return () => {
-      ignore = true;
-    };
-  }, [movieId]);
-
-  if (isLoading) {
-    return <main className="p-25 text-center text-[#888]">로딩 중...</main>;
-  }
-
-  if (errorMessage || !movie) {
-    return <main className="p-25 text-center text-[#888]">{errorMessage}</main>;
-  }
-
-  const genres = movie.genres?.length
+const movie = movieDetailQuery.data;
+  const genres = movie?.genres?.length
     ? movie.genres.map((genre) => genre.name).join(", ")
     : "장르 정보 없음";
+
   return (
+    <>
+{!isValidMovieId ? (
+        <main className="p-25 text-center text-[#888]">
+          올바르지 않은 영화 번호예요.
+        </main>
+      ) : movieDetailQuery.isPending ? (
+        <main className="p-25 text-center text-[#888]">
+          영화 상세 정보를 불러오는 중이에요.
+        </main>
+      ) : movieDetailQuery.isError ? (
+        <main className="p-25 text-center text-[#888]">
+          {getMovieDetailErrorMessage(movieDetailQuery.error)}
+        </main>
+      ) : movie ? (
     <main className="w-full bg-white text-[#111] font-sans">
       <div className="relative w-full h-95 bg-black overflow-hidden">
         <img
@@ -152,5 +125,7 @@ export function MovieDetailPage() {
         </aside>
       </div>
     </main>
+    ) : null}
+    </>
   );
 }
