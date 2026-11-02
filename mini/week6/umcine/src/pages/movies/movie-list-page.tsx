@@ -4,6 +4,7 @@ import MovieGrid from "../../components/movies/movie-grid";
 import { getMovies } from "../../api/movies/get-movies";
 
 export function MovieListPage() {
+  
   // 현재 페이지 번호를 관리해요.
   const [page, setPage] = useState(1);
 
