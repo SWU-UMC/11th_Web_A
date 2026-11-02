@@ -33,6 +33,8 @@ export function MovieDetailPage() {
 
     // 유효한 영화 ID일 때만 API 요청을 실행해요.
     enabled: isValidMovieId,
+
+    staleTime: 30 * 1000,   // 전역은 1분인데 상세 조회만 30초
   });
 
   const movie = movieDetailQuery.data;
