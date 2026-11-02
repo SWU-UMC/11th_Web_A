@@ -1,68 +1,50 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type SubmitEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { searchMovies } from "../../api/movies/search-movies";
-import type { TmdbMovieListItem } from "../../api/movies/models";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 import { cn } from "../../utils/cn";
 
 export function SearchPage() {
   const { query } = useSearch({ from: "/search" });
   const navigate = useNavigate({ from: "/search" });
+
+  // 검색창에 입력하고 있는 값을 관리해요.
   const [searchText, setSearchText] = useState(query ?? "");
+
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+  // URL의 검색어를 앞뒤 공백을 제거한 값으로 정리해요.
   const normalizedQuery = query?.trim() ?? "";
   const hasQuery = normalizedQuery.length > 0;
-  
+
+  // URL의 query가 변경되면 검색창의 값도 변경해요.
   useEffect(() => {
     setSearchText(query ?? "");
   }, [query]);
 
-  useEffect(() => {
-    let ignore = false;
+  // TanStack Query로 검색 API 요청과 캐시를 관리해요.
+  const searchQuery = useQuery({
+    // 검색어가 달라지면 서로 다른 검색 결과로 구분해서 캐시해요.
+    queryKey: ["movies", "search", { query: normalizedQuery }],
 
-    setMovies([]);
-    setErrorMessage(null);
+    // 현재 검색어로 TMDB 검색 API를 요청해요.
+    queryFn: () => searchMovies({ query: normalizedQuery }),
 
-    if (!normalizedQuery) {
-      setIsLoading(false);
-      return;
-    }
+    // 검색어가 있을 때만 API 요청을 실행해요.
+    enabled: normalizedQuery.length > 0,
+  });
 
-    setIsLoading(true);
-
-    searchMovies({ query: normalizedQuery })
-      .then((response) => {
-        if (!ignore) {
-          setMovies(response.results);
-        }
-      })
-      .catch(() => {
-        if (!ignore) {
-          setErrorMessage("검색 결과를 불러오지 못했어요.");
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      });
-
-    return () => {
-      ignore = true;
-    };
-
-  }, [normalizedQuery]);
+  // API 응답이 아직 없으면 빈 배열을 사용해요.
+  const movies = searchQuery.data?.results ?? [];
 
   function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const nextQuery = searchText.trim();
 
+    // 검색어가 있으면 URL에 query를 넣고,
+    // 없으면 query 없이 검색 페이지로 이동해요.
     navigate({
       search: nextQuery ? { query: nextQuery } : {},
     });
@@ -75,82 +57,100 @@ export function SearchPage() {
         !hasQuery && "py-0",
       )}
     >
-      <section className={cn(!hasQuery && "mx-auto max-w-[790px] pb-24 pt-24 md:pb-[210px] md:pt-[209px]")}>
-      <h1
+      <section
         className={cn(
-          "mb-5 text-[38px] font-bold leading-[44px] tracking-[-1.71px]",
-          !hasQuery && "mb-9 text-center text-[28px] leading-9 md:min-h-[53px] md:text-[46px] md:leading-[52.44px] md:tracking-[-2.3px]",
+          !hasQuery &&
+            "mx-auto max-w-[790px] pb-24 pt-24 md:pb-[210px] md:pt-[209px]",
         )}
       >
-        {hasQuery ? "영화 검색" : "어떤 영화를 찾고 있나요?"}
-      </h1>
-
-      <form
-        role="search"
-        onSubmit={handleSubmit}
-        className={cn(
-          "flex h-[54px] items-center gap-[18px] rounded-[9px] border border-[#e3e6eb] bg-white py-0 pl-[15px] pr-[10px] focus-within:border-[#17191e] focus-within:ring-1 focus-within:ring-[#17191e]",
-          !hasQuery && "h-[74px] gap-[14px] rounded-xl border-2 border-[#17191e] py-0 pl-[21px] pr-[17px] shadow-[0_12px_34px_0_rgb(17_19_24/0.08)] focus-within:ring-0",
-        )}
-      >
-        <img className="size-6 shrink-0" src="/icons/search.svg" alt="" />
-        <input
-          ref={inputRef}
+        <h1
           className={cn(
-            "min-w-0 flex-1 bg-transparent py-2 text-[14px] font-bold leading-none text-[#17191e] outline-none placeholder:font-normal placeholder:text-[#969da8] [&::-webkit-search-cancel-button]:appearance-none",
-            !hasQuery && "py-0 text-[17px] font-normal tracking-normal",
+            "mb-5 text-[38px] font-bold leading-[44px] tracking-[-1.71px]",
+            !hasQuery &&
+              "mb-9 text-center text-[28px] leading-9 md:min-h-[53px] md:text-[46px] md:leading-[52.44px] md:tracking-[-2.3px]",
           )}
-          type="search"
-          name="query"
-          autoComplete="off"
-          aria-label="검색어"
-          placeholder="예: 스파이더맨"
-          value={searchText}
-          onChange={(event) => setSearchText(event.target.value)}
-        />
-        {searchText && (
-          <button
-            className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded hover:bg-[#f6f7f9]"
-            type="button"
-            aria-label="검색어 지우기"
-            onClick={() => {
-              setSearchText("");
-              inputRef.current?.focus();
-            }}
-          >
-            <img className="size-5" src="/icons/close.svg" alt="" />
-          </button>
-        )}
-        <button
-          className={cn(
-            "shrink-0 cursor-pointer rounded-md bg-[#17191e] px-4 py-[10px] text-[14px] font-bold leading-5 text-white hover:bg-[#30343d]",
-            !hasQuery && "h-[42px] min-w-[59px] rounded-lg border border-[#17191e] py-0 font-extrabold leading-none",
-          )}
-          type="submit"
         >
-          {hasQuery ? "다시 검색" : "검색"}
-        </button>
-      </form>
+          {hasQuery ? "영화 검색" : "어떤 영화를 찾고 있나요?"}
+        </h1>
+
+        <form
+          role="search"
+          onSubmit={handleSubmit}
+          className={cn(
+            "flex h-[54px] items-center gap-[18px] rounded-[9px] border border-[#e3e6eb] bg-white py-0 pl-[15px] pr-[10px] focus-within:border-[#17191e] focus-within:ring-1 focus-within:ring-[#17191e]",
+            !hasQuery &&
+              "h-[74px] gap-[14px] rounded-xl border-2 border-[#17191e] py-0 pl-[21px] pr-[17px] shadow-[0_12px_34px_0_rgb(17_19_24/0.08)] focus-within:ring-0",
+          )}
+        >
+          <img className="size-6 shrink-0" src="/icons/search.svg" alt="" />
+
+          <input
+            ref={inputRef}
+            className={cn(
+              "min-w-0 flex-1 bg-transparent py-2 text-[14px] font-bold leading-none text-[#17191e] outline-none placeholder:font-normal placeholder:text-[#969da8] [&::-webkit-search-cancel-button]:appearance-none",
+              !hasQuery && "py-0 text-[17px] font-normal tracking-normal",
+            )}
+            type="search"
+            name="query"
+            autoComplete="off"
+            aria-label="검색어"
+            placeholder="예: 스파이더맨"
+            value={searchText}
+            onChange={(event) => setSearchText(event.target.value)}
+          />
+
+          {searchText && (
+            <button
+              className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded hover:bg-[#f6f7f9]"
+              type="button"
+              aria-label="검색어 지우기"
+              onClick={() => {
+                setSearchText("");
+                inputRef.current?.focus();
+              }}
+            >
+              <img className="size-5" src="/icons/close.svg" alt="" />
+            </button>
+          )}
+
+          <button
+            className={cn(
+              "shrink-0 cursor-pointer rounded-md bg-[#17191e] px-4 py-[10px] text-[14px] font-bold leading-5 text-white hover:bg-[#30343d]",
+              !hasQuery &&
+                "h-[42px] min-w-[59px] rounded-lg border border-[#17191e] py-0 font-extrabold leading-none",
+            )}
+            type="submit"
+          >
+            {hasQuery ? "다시 검색" : "검색"}
+          </button>
+        </form>
       </section>
 
       {hasQuery && (
         <>
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-b border-[#e3e6eb] pb-4" aria-live="polite">
+          <div
+            className="mt-5 flex flex-wrap items-center justify-between gap-2 border-b border-[#e3e6eb] pb-4"
+            aria-live="polite"
+          >
             <h2 className="min-w-0 break-words text-[16px] font-bold leading-6">
               ‘{query?.trim()}’ 검색 결과
             </h2>
-            <p className="text-[12px] leading-5 text-[#606774]">영화 {movies.length}편</p>
+
+            <p className="text-[12px] leading-5 text-[#606774]">
+              영화 {movies.length}편
+            </p>
           </div>
 
-          {isLoading ? (
+          {/* 검색 결과 상태를 TanStack Query 상태에 따라 구분해요. */}
+          {searchQuery.isLoading ? (
             <p className="py-20 text-center text-[16px] leading-6 text-[#606774]">
               검색 결과를 불러오는 중이에요.
             </p>
-          ) : errorMessage ? (
+          ) : searchQuery.isError ? (
             <p className="py-20 text-center text-[16px] leading-6 text-[#606774]">
-              {errorMessage}
+              {searchQuery.error.message}
             </p>
-          ) : movies.length === 0 ? (
+          ) : searchQuery.isSuccess && movies.length === 0 ? (
             <p className="py-20 text-center text-[16px] leading-6 text-[#606774]">
               검색 결과가 없어요.
             </p>
@@ -207,7 +207,7 @@ export function SearchPage() {
                   </li>
                 );
               })}
-            </ul>            
+            </ul>
           )}
         </>
       )}
