@@ -1,8 +1,12 @@
 import { Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState, type SubmitEvent } from "react";
+import { useState, type SubmitEvent } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import type { TmdbMovieDetail } from "../../api/movies/models";
-import { getTmdbBackdropUrl, getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
+import {
+  getTmdbBackdropUrl,
+  getTmdbPosterUrl,
+} from "../../utils/movies/tmdb-image";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import { cn } from "../../utils/cn";
 import { useBookmarkStore } from "../../stores/bookmark-store";
@@ -15,52 +19,44 @@ export function MovieDetailPage() {
   // URL의 movieId는 문자열이므로 API 요청을 위해 숫자로 변환
   const parsedMovieId = Number(movieId);
 
-  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // 영화 ID가 0보다 큰 정수인지 확인해요.
+  const isValidMovieId =
+    Number.isInteger(parsedMovieId) && parsedMovieId > 0;
 
-  useEffect(() => {
-    // 이전 요청의 응답이 현재 화면의 상태를 변경하지 않도록 관리
-    let ignore = false;
+  // TanStack Query로 영화 상세 API 요청과 캐시를 관리해요.
+  const movieDetailQuery = useQuery({
+    // 영화 ID별로 상세 데이터를 구분해서 캐시해요.
+    queryKey: ["movies", "detail", parsedMovieId],
 
-    setMovie(null);
-    setErrorMessage(null);
+    // 현재 영화 ID로 TMDB 상세 정보를 요청해요.
+    queryFn: () => getMovieDetail(parsedMovieId),
 
-    // 양의 정수가 아닌 영화 ID는 API 요청을 보내지 않음
-    if (!Number.isInteger(parsedMovieId) || parsedMovieId <= 0) {
-      setIsLoading(false);
-      setErrorMessage("올바르지 않은 영화 번호예요.");
-      return;
-    }
+    // 유효한 영화 ID일 때만 API 요청을 실행해요.
+    enabled: isValidMovieId,
+  });
 
-    setIsLoading(true);
+  const movie = movieDetailQuery.data;
 
-    // 영화 ID로 TMDB 상세 정보 요청
-    getMovieDetail(parsedMovieId)
-      .then((response) => {
-        if (!ignore) {
-          setMovie(response);
-        }
-      })
-      .catch((error) => {
-        if (!ignore) {
-          setErrorMessage(getMovieDetailErrorMessage(error));
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      });
+  // 유효하지 않은 영화 ID는 API 요청보다 먼저 처리해요.
+  if (!isValidMovieId) {
+    return (
+      <main className="px-4 py-20 text-center text-[#17191e]">
+        <h1 className="text-[21px] font-bold">
+          올바르지 않은 영화 번호예요.
+        </h1>
 
-    // 화면을 떠나거나 movieId가 바뀌면 이전 요청의 상태 변경을 막음
-    return () => {
-      ignore = true;
-    };
-  }, [parsedMovieId]);
+        <Link
+          className="mt-4 inline-block text-[#2563eb] hover:underline"
+          to="/"
+        >
+          영화 목록
+        </Link>
+      </main>
+    );
+  }
 
-  // API 요청 중
-  if (isLoading) {
+  // 첫 상세 데이터를 가져오는 중이에요.
+  if (movieDetailQuery.isPending) {
     return (
       <main className="px-4 py-20 text-center text-[#17191e]">
         영화 정보를 불러오는 중이에요.
@@ -68,11 +64,14 @@ export function MovieDetailPage() {
     );
   }
 
-  // 잘못된 영화 ID 또는 API 요청 오류
-  if (errorMessage) {
+  // 상세 API 요청에 실패했어요.
+  if (movieDetailQuery.isError) {
     return (
       <main className="px-4 py-20 text-center text-[#17191e]">
-        <h1 className="text-[21px] font-bold">{errorMessage}</h1>
+        <h1 className="text-[21px] font-bold">
+          {getMovieDetailErrorMessage(movieDetailQuery.error)}
+        </h1>
+
         <Link
           className="mt-4 inline-block text-[#2563eb] hover:underline"
           to="/"
