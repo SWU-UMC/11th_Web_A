@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
+import { signup } from "../../api/members/signup";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -33,6 +34,8 @@ export function SignupPage() {
     email: DEFAULT_DUPLICATE_CHECK,
     nickname: DEFAULT_DUPLICATE_CHECK,
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 입력값의 유효성을 검사해요.
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
@@ -152,12 +155,29 @@ export function SignupPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    // 폼 제출 시 페이지가 새로고침되지 않도록 해요.
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+  ) => {
     e.preventDefault();
 
-    // 3.4에서 회원가입 API 요청을 추가해요.
-  };
+    if (!canSubmit || isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await signup({
+        email: form.email.trim(),
+        nickname: form.nickname.trim(),
+        password: form.password,
+      });
+
+      alert(response.message);
+    } catch {
+      alert("회원가입에 실패했어요. 다시 시도해 주세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
+};
 
   return (
     <main className="flex flex-1 justify-center bg-[#f6f7f9]">
@@ -321,10 +341,10 @@ export function SignupPage() {
           {/* 가입하기 */}
           <button
             type="submit"
-            disabled={!canSubmit}
+            disabled={!canSubmit || isSubmitting}
             className="h-[48px] w-full rounded-lg border border-[#2563eb] bg-[#2563eb] text-[13px] font-bold text-white disabled:border-[#e3e6eb] disabled:bg-[#e3e6eb] disabled:text-[#969da8]"
           >
-            가입하기
+            {isSubmitting ? "가입 중" : "가입하기"}
           </button>
         </form>
 
