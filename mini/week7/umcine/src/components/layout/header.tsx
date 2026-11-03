@@ -27,7 +27,7 @@ export default function Header() {
         <Link className="flex size-[42px] items-center justify-center rounded-lg border border-[#e3e6eb] bg-white" to="/search" aria-label="검색">
           <img className="size-6" src="/icons/search.svg" alt="" />
         </Link>
-        <button className="h-[42px] w-[71px] rounded-lg border border-white bg-[#2563eb] px-4 text-[14px] font-extrabold leading-none text-white" type="button">로그인</button>
+        <Link className="flex h-[42px] w-[71px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4 text-[14px] font-extrabold leading-none text-white no-underline" to="/login">로그인</Link>
       </div>
     </header>
   );
