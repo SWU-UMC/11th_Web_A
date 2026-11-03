@@ -1,48 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getMovies } from "../../api/movies/get-movies";
-import type { TmdbMovieListItem } from "../../api/movies/models";
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
 
 export function MovieListPage() {
-  const [movies, setMovies] = useState<TmdbMovieListItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    let ignore = false;
+  const moviesQuery = useQuery({
+    queryKey: ["movies", "list", { page: currentPage }],
+    queryFn: () => getMovies({ page: currentPage }),
+  });
 
-    async function loadMovies() {
-      setIsLoading(true);
-      setErrorMessage(null);
+  const movies = moviesQuery.data?.results ?? [];
+  const totalPages = moviesQuery.data?.total_pages ?? 0;
 
-      try {
-        const response = await getMovies({ page: currentPage });
-
-        if (!ignore) {
-          setMovies(response.results);
-          setTotalPages(response.total_pages);
-        }
-      } catch {
-        if (!ignore) {
-          setMovies([]);
-          setErrorMessage("영화 목록을 불러오지 못했어요.");
-        }
-      } finally {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      }
-    }
-
-    void loadMovies();
-
-    return () => {
-      ignore = true;
-    };
-  }, [currentPage]);
+  const handlePageChange = (nextPage: number) => {
+    setCurrentPage(nextPage);
+  };
 
   return (
     <div className="flex min-h-[calc(100vh-64px)] flex-col">
@@ -51,10 +26,12 @@ export function MovieListPage() {
           영화 목록
         </h1>
 
-        {isLoading ? (
+        {moviesQuery.isPending ? (
           <p>영화 목록을 불러오는 중이에요.</p>
-        ) : errorMessage ? (
-          <p className="text-red-600">{errorMessage}</p>
+        ) : moviesQuery.isError ? (
+          <p className="text-red-600">
+            영화 목록을 불러오지 못했어요.
+          </p>
         ) : movies.length === 0 ? (
           <p>조건에 맞는 영화가 없어요.</p>
         ) : (
@@ -63,7 +40,7 @@ export function MovieListPage() {
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              onPageChange={handlePageChange}
             />
           </>
         )}

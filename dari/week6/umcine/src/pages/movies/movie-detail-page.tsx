@@ -1,9 +1,6 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-
+import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
-import type { TmdbMovieDetail } from "../../api/movies/models";
 import { BookmarkButton } from "../../components/bookmark-button";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import {
@@ -31,65 +28,44 @@ function formatRuntime(runtime: number | null) {
 }
 
 export function MovieDetailPage() {
-  const { movieId } = useParams({ from: "/movies/$movieId" });
-  const parsedMovieId = Number(movieId);
+  const { movieId: movieIdParam } = useParams({
+    from: "/movies/$movieId",
+  });
 
-  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const movieId = Number(movieIdParam);
+  const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
 
-  useEffect(() => {
-    let ignore = false;
+  const movieDetailQuery = useQuery({
+    queryKey: ["movies", "detail", movieId],
+    queryFn: () => getMovieDetail(movieId),
+    enabled: isValidMovieId,
+  });
 
-    setMovie(null);
-    setErrorMessage(null);
-
-    if (!Number.isInteger(parsedMovieId) || parsedMovieId <= 0) {
-      setIsLoading(false);
-      setErrorMessage("올바르지 않은 영화 번호예요.");
-      return;
-    }
-
-    setIsLoading(true);
-
-    getMovieDetail(parsedMovieId)
-      .then((response) => {
-        if (!ignore) {
-          setMovie(response);
-        }
-      })
-      .catch((error: unknown) => {
-        if (!ignore) {
-          setErrorMessage(getMovieDetailErrorMessage(error));
-        }
-      })
-      .finally(() => {
-        if (!ignore) {
-          setIsLoading(false);
-        }
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [parsedMovieId]);
-
-  if (isLoading) {
+  if (!isValidMovieId) {
     return (
       <main className="mx-auto w-[min(1160px,calc(100%-48px))] py-8">
-        영화 정보를 불러오는 중이에요.
+        올바르지 않은 영화 번호예요.
       </main>
     );
   }
 
-  if (errorMessage || !movie) {
+  if (movieDetailQuery.isPending) {
     return (
       <main className="mx-auto w-[min(1160px,calc(100%-48px))] py-8">
-        {errorMessage ?? "영화 정보를 불러오지 못했어요."}
+        영화 상세 정보를 불러오는 중이에요.
       </main>
     );
   }
 
+  if (movieDetailQuery.isError) {
+    return (
+      <main className="mx-auto w-[min(1160px,calc(100%-48px))] py-8">
+        {getMovieDetailErrorMessage(movieDetailQuery.error)}
+      </main>
+    );
+  }
+
+  const movie = movieDetailQuery.data;
   const posterUrl = getTmdbPosterUrl(movie.poster_path);
   const backdropUrl = getTmdbBackdropUrl(movie.backdrop_path);
   const genreNames =
