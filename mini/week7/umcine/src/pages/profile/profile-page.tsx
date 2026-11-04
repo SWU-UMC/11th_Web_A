@@ -5,6 +5,8 @@ import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import MovieCard from "../../components/movies/movie-card";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 
+import { previewProfile } from "./preview-profile";
+
 const PAGE_SIZE = 10;
 
 export function ProfilePage() {
@@ -30,15 +32,13 @@ export function ProfilePage() {
     <main className="px-4 pb-10 pt-6 text-[#17191e] md:px-10 xl:px-20">
       <div className="flex min-h-[42px] items-center justify-between gap-4">
         <h1 className="text-[31px] font-bold leading-[37px] tracking-[-1.24px]">내 정보</h1>
-        {/* TODO: 내 정보 수정 화면이 추가되면 이동을 연결해요. */}
         {isPreview && (
-          <button
-            type="button"
-            disabled
-            className="h-[42px] rounded-lg border border-white bg-[#2563eb] px-4 text-[14px] font-bold text-white"
+          <Link
+            to="/profile/edit"
+            className="inline-flex h-[42px] items-center rounded-lg border border-white bg-[#2563eb] px-4 text-[14px] font-bold text-white no-underline"
           >
             정보 수정
-          </button>
+          </Link>
         )}
       </div>
 
@@ -52,11 +52,11 @@ export function ProfilePage() {
             <dl className="grid min-w-0 flex-1 gap-x-7 gap-y-3 sm:max-w-[760px] sm:grid-cols-2">
               <div>
                 <dt className="text-[11px] leading-[13px] text-[#969da8]">닉네임</dt>
-                <dd className="mt-1.5 text-[14px] font-bold leading-[17px]">gs0428</dd>
+                <dd className="mt-1.5 text-[14px] font-bold leading-[17px]">{previewProfile.nickname}</dd>
               </div>
               <div>
                 <dt className="text-[11px] leading-[13px] text-[#969da8]">이메일</dt>
-                <dd className="mt-1.5 text-[14px] font-bold leading-[17px] wrap-anywhere">gs0428@example.com</dd>
+                <dd className="mt-1.5 text-[14px] font-bold leading-[17px] wrap-anywhere">{previewProfile.email}</dd>
               </div>
             </dl>
           ) : (

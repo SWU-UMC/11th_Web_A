@@ -5,7 +5,7 @@ export default function Header() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isMoviePage = pathname === "/" || pathname.startsWith("/movies/");
   const isSearchPage = pathname === "/search";
-  const isProfilePage = pathname === "/profile";
+  const isProfilePage = pathname === "/profile" || pathname === "/profile/edit";
   const navClassName = "text-center text-[14px] font-bold leading-none text-[#606774] no-underline";
   const activeClassName = "text-[#17191e] underline underline-offset-2";
 
