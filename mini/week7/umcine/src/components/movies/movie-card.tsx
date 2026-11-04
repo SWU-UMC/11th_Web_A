@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import type { TmdbMovieListItem } from "../../api/movies/models";
+import type { TmdbMovie } from "../../api/movies/models";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 import { BookmarkButton } from "../bookmark-button";
 
 interface MovieCardProps {
-  movie: TmdbMovieListItem;
+  movie: TmdbMovie;
 }
 
 export default function MovieCard({movie}: MovieCardProps) {

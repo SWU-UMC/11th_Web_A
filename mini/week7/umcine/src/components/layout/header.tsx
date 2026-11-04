@@ -5,6 +5,7 @@ export default function Header() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isMoviePage = pathname === "/" || pathname.startsWith("/movies/");
   const isSearchPage = pathname === "/search";
+  const isProfilePage = pathname === "/profile";
   const navClassName = "text-center text-[14px] font-bold leading-none text-[#606774] no-underline";
   const activeClassName = "text-[#17191e] underline underline-offset-2";
 
@@ -20,7 +21,7 @@ export default function Header() {
         <nav className="flex items-center gap-[30px]" aria-label="주 메뉴">
           <Link to="/" className={cn(navClassName, isMoviePage && activeClassName)}>영화</Link>
           <Link to="/search" className={cn(navClassName, isSearchPage && activeClassName)}>검색</Link>
-          <a className={navClassName} href="#">내 정보</a>
+          <Link to="/profile" className={cn(navClassName, isProfilePage && activeClassName)}>내 정보</Link>
         </nav>
       </div>
       <div className="flex items-center gap-[10px]">
