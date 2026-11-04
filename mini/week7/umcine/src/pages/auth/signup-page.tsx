@@ -181,7 +181,7 @@ export function SignupPage() {
 
   return (
     <main className="flex flex-1 justify-center bg-[#f6f7f9]">
-      <section className="w-[430px] pt-[211.5px]">
+      <section className="w-[430px] py-[211.5px]">
         <h1 className="m-0 mb-[16px] text-[32px] font-bold leading-[41px] text-[#17191e]">
           회원가입
         </h1>
