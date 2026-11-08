@@ -1,13 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import type { Movie } from "../../types/movie.ts";
+import type { TmdbMovie } from "../../api/movies/models.ts";
 import { cn } from "../../utils/cn.ts";
 import { useBookmarkStore } from "../../stores/bookmark-store.ts";
+import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image.ts";
 
 interface MovieCardProps {
-  movie: Movie;
+  movie: TmdbMovie;
 }
 
 export function MovieCard({ movie }: MovieCardProps) {
+  const posterUrl = getTmdbPosterUrl(movie.poster_path);
   const isBookmarked = useBookmarkStore((state) =>
     state.bookmarkedMovieIds.includes(movie.id),
   );
@@ -18,13 +20,21 @@ export function MovieCard({ movie }: MovieCardProps) {
       className={cn("relative overflow-hidden rounded-[10px] bg-white")}
     >
       <Link to="/movies/$movieId" params={{ movieId: String(movie.id) }}>
-        <img
-          className="object-cover aspect-square w-full"
-          src={movie.posterPath}
-          alt={movie.title}
-        />
+        <div className="aspect-square w-full bg-gray-200">
+          {posterUrl ? (
+            <img
+              className="h-full w-full object-cover"
+              src={posterUrl}
+              alt={`${movie.title} 포스터`}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-gray-500">
+              포스터 없음
+            </div>
+          )}
+        </div>
         <span className="text-base font-bold">{movie.title}</span>
-        <div className="text-sm text-[#666]">{movie.releaseDate}</div>
+        <div className="text-sm text-[#666]">{movie.release_date}</div>
       </Link>
       <button
         className={cn(

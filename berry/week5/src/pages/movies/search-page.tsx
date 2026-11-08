@@ -1,82 +1,103 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState, type SubmitEvent } from "react";
-import { movies } from "../../data/movies.ts";
+import { useEffect, useState } from "react";
+import { searchMovies } from "../../api/movies/search-movies.ts";
+import type { TmdbMovieListItem } from "../../api/movies/models.ts";
 import MovieGrid from "../../components/movies/movie-grid.tsx";
 
 export function SearchPage() {
   const { query } = useSearch({ from: "/search" });
+  return <SearchPageContent key={query ?? ""} query={query ?? ""} />;
+}
+
+type SearchState =
+  | { status: "idle" | "loading" | "error" }
+  | { status: "success"; movies: TmdbMovieListItem[] };
+
+function SearchPageContent({ query }: { query: string }) {
   const navigate = useNavigate({ from: "/search" });
-  const [searchText, setSearchText] = useState(query ?? "");
+  const [searchText, setSearchText] = useState(query);
+  const normalizedQuery = query.trim();
+  const [searchState, setSearchState] = useState<SearchState>(() =>
+    normalizedQuery ? { status: "loading" } : { status: "idle" },
+  );
 
   useEffect(() => {
-    setSearchText(query ?? "");
-  }, [query]);
+    let ignore = false;
 
-  const normalizedQuery = query?.trim().toLowerCase() ?? "";
-  const searchResults = normalizedQuery
-    ? movies.filter(
-        (movie) =>
-          movie.title.toLowerCase().includes(normalizedQuery) ||
-          movie.originalTitle.toLowerCase().includes(normalizedQuery),
-      )
-    : [];
+    if (!normalizedQuery) {
+      return () => {
+        ignore = true;
+      };
+    }
 
-  function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const nextQuery = searchText.trim();
-    navigate({
-      search: nextQuery ? { query: nextQuery } : {},
-    });
-  }
+    searchMovies({ query: normalizedQuery })
+      .then((response) => {
+        if (!ignore) {
+          setSearchState({ status: "success", movies: response.results });
+        }
+      })
+      .catch(() => {
+        if (!ignore) setSearchState({ status: "error" });
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [normalizedQuery]);
 
   return (
     <main className="min-h-screen bg-white pb-20">
-      {/* 상단 검색 헤더 */}
-      <div className="max-w-[1440px] mx-auto px-6 pt-16 pb-12 flex flex-col items-center text-center">
-        <h1 className="text-3xl font-extrabold mb-8">
+      <div className="mx-auto flex max-w-[1440px] flex-col items-center px-6 pb-12 pt-16 text-center">
+        <h1 className="mb-8 text-3xl font-extrabold">
           어떤 영화를 찾고 있나요?
         </h1>
 
-        {/* 영화 검색 입력폼 */}
         <form
-          onSubmit={handleSubmit}
-          className="w-full max-w-2xl flex items-center bg-white border-2 border-black rounded-2xl overflow-hidden shadow-sm px-4 py-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const nextQuery = searchText.trim();
+            navigate({
+              search: nextQuery ? { query: nextQuery } : {},
+            });
+          }}
+          className="flex w-full max-w-2xl items-center overflow-hidden rounded-2xl border-2 border-black bg-white px-4 py-2 shadow-sm"
         >
-          <img
-            src="../../../public/icons/search.svg"
-            className="text-gray-400 mr-3"
-          />
+          <img src="/icons/search.svg" alt="" className="mr-3 text-gray-400" />
           <input
             aria-label="검색어"
             value={searchText}
             onChange={(event) => setSearchText(event.target.value)}
             placeholder="예: 스파이더맨"
-            className="w-full py-2 text-sm focus:outline-none bg-transparent"
+            className="w-full bg-transparent py-2 text-sm focus:outline-none"
           />
           <button
             type="submit"
-            className="bg-black text-white px-6 py-2.5 rounded-xl font-medium hover:bg-gray-800 transition-colors flex-shrink-0 ml-2"
+            className="ml-2 flex-shrink-0 rounded-xl bg-black px-6 py-2.5 font-medium text-white transition-colors hover:bg-gray-800"
           >
             검색
           </button>
         </form>
-
-        <div className="max-w-[1440px] mx-auto px-6">
-          {!normalizedQuery ? (
-            <div className="text-center py-20 text-gray-400 text-sm">
-              검색어를 입력해 주세요.
-            </div>
-          ) : searchResults.length === 0 ? (
-            <div className="text-center py-20 text-gray-500 text-sm">
-              검색 결과가 없습니다.
-            </div>
-          ) : (
-            <div className="mt-8 pb-20">
-              <MovieGrid movies={searchResults} />
-            </div>
-          )}
-        </div>
       </div>
+
+      {!normalizedQuery ? (
+        <div className="py-20 text-center text-sm text-gray-400">
+          검색어를 입력해 주세요.
+        </div>
+      ) : searchState.status === "loading" ? (
+        <div className="py-20 text-center text-sm text-gray-500">
+          영화를 검색하고 있어요.
+        </div>
+      ) : searchState.status === "error" ? (
+        <div className="py-20 text-center text-sm text-red-600">
+          검색 결과를 불러오지 못했어요.
+        </div>
+      ) : searchState.status === "success" && searchState.movies.length === 0 ? (
+        <div className="py-20 text-center text-sm text-gray-500">
+          검색 결과가 없습니다.
+        </div>
+      ) : searchState.status === "success" ? (
+        <MovieGrid movies={searchState.movies} />
+      ) : null}
     </main>
   );
 }

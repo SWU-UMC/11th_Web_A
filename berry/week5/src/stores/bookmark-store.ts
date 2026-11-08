@@ -1,4 +1,4 @@
-import { create } from "zustand";
+import { create, type StateCreator } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 interface BookmarkStore {
@@ -6,8 +6,14 @@ interface BookmarkStore {
   toggleBookmark: (movieId: number) => void;
 }
 
-export const useBookmarkStore = create<BookmarkStore>()(
-  persist(
+type PersistedBookmarkStore = Pick<BookmarkStore, "bookmarkedMovieIds">;
+
+const bookmarkStoreCreator = persist<
+  BookmarkStore,
+  [],
+  [],
+  PersistedBookmarkStore
+>(
     (set) => ({
       bookmarkedMovieIds: [],
       toggleBookmark: (movieId) =>
@@ -19,10 +25,11 @@ export const useBookmarkStore = create<BookmarkStore>()(
     }),
     {
       name: "umcine-bookmark-store",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage<PersistedBookmarkStore>(() => localStorage),
       partialize: (state) => ({
         bookmarkedMovieIds: state.bookmarkedMovieIds,
       }),
     },
-  ),
-);
+) as unknown as StateCreator<BookmarkStore>;
+
+export const useBookmarkStore = create<BookmarkStore>()(bookmarkStoreCreator);
