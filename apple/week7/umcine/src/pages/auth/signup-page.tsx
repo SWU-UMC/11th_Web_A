@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { checkEmailDuplicate } from "@/api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "@/api/members/check-nickname-duplicate";
+import { signup } from "@/api/members/signup";
+// import { useNavigate } from "@tanstack/react-router";
 
 // 이메일 형식 검사
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,6 +40,8 @@ export function SignupPage() {
     email: DEFAULT_DUPLICATE_CHECK,
     nickname: DEFAULT_DUPLICATE_CHECK,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  // const navigate = useNavigate();
 
   // 입력값의 유효성 검사
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
@@ -118,11 +122,26 @@ export function SignupPage() {
     }
   };
 
-  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     // 폼 제출 시 페이지 새로고침 방지
     e.preventDefault();
+    if (!canSubmit || isSubmitting) return;
 
-    // 3.4에서 회원가입 API 요청 추가
+    setIsSubmitting(true);
+    try {
+      const response = await signup({
+        email: form.email.trim(),
+        nickname: form.nickname.trim(),
+        password: form.password,
+      });
+      alert(response.message);
+      // 로그인 페이지 연결 후 주석 해제
+      // navigate({ to: "/login" });
+    } catch {
+      alert("회원가입에 실패했어요. 다시 시도해 주세요.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // noValidate는 폼 제출 시 브라우저의 기본 유효성 검사를 끔
@@ -254,10 +273,10 @@ export function SignupPage() {
           {/* 제출 버튼 */}
           <button
             type="submit"
-            disabled={!canSubmit}
+            disabled={!canSubmit || isSubmitting}
             className="h-12 w-full rounded-xl bg-blue-600 text-base font-bold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed"
           >
-            가입하기
+            {isSubmitting ? "가입 중" : "가입하기"}
           </button>
 
           {/* 로그인 링크 */}
