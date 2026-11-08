@@ -1,49 +1,22 @@
 import { useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { searchMovies } from "../../api/movies/search-movies.ts";
-import type { TmdbMovieListItem } from "../../api/movies/models.ts";
+import { useQuery } from "@tanstack/react-query";
 import MovieGrid from "../../components/movies/movie-grid.tsx";
 
 export function SearchPage() {
   const { query } = useSearch({ from: "/search" });
-  return <SearchPageContent key={query ?? ""} query={query ?? ""} />;
-}
-
-type SearchState =
-  | { status: "idle" | "loading" | "error" }
-  | { status: "success"; movies: TmdbMovieListItem[] };
-
-function SearchPageContent({ query }: { query: string }) {
   const navigate = useNavigate({ from: "/search" });
-  const [searchText, setSearchText] = useState(query);
-  const normalizedQuery = query.trim();
-  const [searchState, setSearchState] = useState<SearchState>(() =>
-    normalizedQuery ? { status: "loading" } : { status: "idle" },
-  );
+  const normalizedQuery = query?.trim() ?? "";
+  const [searchText, setSearchText] = useState(query ?? "");
 
-  useEffect(() => {
-    let ignore = false;
+  const searchQuery = useQuery({
+    queryKey: ["movies", "search", { query: normalizedQuery }],
+    queryFn: () => searchMovies({ query: normalizedQuery }),
+    enabled: normalizedQuery.length > 0,
+  });
 
-    if (!normalizedQuery) {
-      return () => {
-        ignore = true;
-      };
-    }
-
-    searchMovies({ query: normalizedQuery })
-      .then((response) => {
-        if (!ignore) {
-          setSearchState({ status: "success", movies: response.results });
-        }
-      })
-      .catch(() => {
-        if (!ignore) setSearchState({ status: "error" });
-      });
-
-    return () => {
-      ignore = true;
-    };
-  }, [normalizedQuery]);
+  const searchResults = searchQuery.data?.results ?? [];
 
   return (
     <main className="min-h-screen bg-white pb-20">
@@ -83,20 +56,20 @@ function SearchPageContent({ query }: { query: string }) {
         <div className="py-20 text-center text-sm text-gray-400">
           검색어를 입력해 주세요.
         </div>
-      ) : searchState.status === "loading" ? (
+      ) : searchQuery.isLoading ? (
         <div className="py-20 text-center text-sm text-gray-500">
           영화를 검색하고 있어요.
         </div>
-      ) : searchState.status === "error" ? (
+      ) : searchQuery.isError ? (
         <div className="py-20 text-center text-sm text-red-600">
           검색 결과를 불러오지 못했어요.
         </div>
-      ) : searchState.status === "success" && searchState.movies.length === 0 ? (
+      ) : searchQuery.isSuccess && searchResults.length === 0 ? (
         <div className="py-20 text-center text-sm text-gray-500">
-          검색 결과가 없습니다.
+          검색 결과가 없어요.
         </div>
-      ) : searchState.status === "success" ? (
-        <MovieGrid movies={searchState.movies} />
+      ) : searchQuery.isSuccess ? (
+        <MovieGrid movies={searchResults} />
       ) : null}
     </main>
   );

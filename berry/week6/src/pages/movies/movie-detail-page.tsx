@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail.ts";
-import type { TmdbMovieDetail } from "../../api/movies/models.ts";
 import { useBookmarkStore } from "../../stores/bookmark-store.ts";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message.ts";
 import {
@@ -10,63 +9,46 @@ import {
 } from "../../utils/movies/tmdb-image.ts";
 
 export function MovieDetailPage() {
-  const { movieId } = useParams({ from: "/movies/$movieId" });
-  const numericMovieId = Number(movieId);
-  const [movie, setMovie] = useState<TmdbMovieDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { movieId: movieIdParam } = useParams({ from: "/movies/$movieId" });
+  const movieId = Number(movieIdParam);
+  const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
 
-  useEffect(() => {
-    let ignore = false;
-
-    async function loadMovie() {
-      setIsLoading(true);
-      setErrorMessage(null);
-      setMovie(null);
-
-      if (!Number.isInteger(numericMovieId) || numericMovieId <= 0) {
-        setErrorMessage("올바르지 않은 영화 번호예요.");
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        const response = await getMovieDetail(numericMovieId);
-        if (!ignore) setMovie(response);
-      } catch (error) {
-        if (!ignore) setErrorMessage(getMovieDetailErrorMessage(error));
-      } finally {
-        if (!ignore) setIsLoading(false);
-      }
-    }
-
-    loadMovie();
-    return () => {
-      ignore = true;
-    };
-  }, [numericMovieId]);
+  const movieDetailQuery = useQuery({
+    queryKey: ["movies", "detail", movieId],
+    queryFn: () => getMovieDetail(movieId),
+    enabled: isValidMovieId,
+  });
 
   const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(numericMovieId),
+    state.bookmarkedMovieIds.includes(movieId),
   );
   const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
 
-  if (isLoading) {
+  if (!isValidMovieId) {
     return (
       <main className="px-6 py-12 text-center text-lg">
-        영화 정보를 불러오는 중이에요.
+        올바르지 않은 영화 번호예요.
       </main>
     );
   }
 
-  if (errorMessage || !movie) {
+  if (movieDetailQuery.isPending) {
     return (
       <main className="px-6 py-12 text-center text-lg">
-        {errorMessage ?? "영화 정보를 찾을 수 없어요."}
+        영화 상세 정보를 불러오는 중이에요.
       </main>
     );
   }
 
+  if (movieDetailQuery.isError) {
+    return (
+      <main className="px-6 py-12 text-center text-lg">
+        {getMovieDetailErrorMessage(movieDetailQuery.error)}
+      </main>
+    );
+  }
+
+  const movie = movieDetailQuery.data;
   const backdropUrl = getTmdbBackdropUrl(movie.backdrop_path);
   const posterUrl = getTmdbPosterUrl(movie.poster_path);
   const runtimeText =
@@ -144,7 +126,7 @@ export function MovieDetailPage() {
             </p>
             <button
               className="flex w-max items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-blue-700"
-              onClick={() => toggleBookmark(numericMovieId)}
+              onClick={() => toggleBookmark(movieId)}
               aria-pressed={isBookmarked}
             >
               <img
