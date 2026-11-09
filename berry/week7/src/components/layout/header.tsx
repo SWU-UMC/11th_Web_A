@@ -36,7 +36,7 @@ export function Header() {
             검색
           </Link>
           <Link
-            to="/"
+            to="/mypage"
             className="relative py-2 text-sm font-medium text-gray-400 hover:text-black transition-colors"
           >
             내 정보
@@ -50,9 +50,11 @@ export function Header() {
         >
           <img src="../../../public/icons/search.svg" />
         </Link>
-        <button className="py-2.5 px-4 border-0 rounded-[10px] bg-blue-600 text-white hover:bg-blue-700">
-          로그인
-        </button>
+        <Link to="/login">
+          <button className="py-2.5 px-4 border-0 rounded-[10px] bg-blue-600 text-white hover:bg-blue-700">
+            로그인
+          </button>
+        </Link>
       </div>
     </header>
   );

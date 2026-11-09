@@ -1,8 +1,8 @@
-import type { TmdbMovieListItem } from "../../api/movies/models.ts";
+import type { TmdbMovie } from "../../api/movies/models.ts";
 import { MovieCard } from "./movie-card.tsx";
 
 interface MovieGridProps {
-  movies: TmdbMovieListItem[];
+  movies: TmdbMovie[];
 }
 
 export default function MovieGrid({ movies }: MovieGridProps) {
