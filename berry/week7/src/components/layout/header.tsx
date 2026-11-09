@@ -38,6 +38,10 @@ export function Header() {
           <Link
             to="/mypage"
             className="relative py-2 text-sm font-medium text-gray-400 hover:text-black transition-colors"
+            activeProps={{
+              className:
+                "!text-black !font-bold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-black",
+            }}
           >
             내 정보
           </Link>
