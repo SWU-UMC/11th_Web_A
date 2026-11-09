@@ -12,35 +12,35 @@ import {
 } from "../../utils/bookmark-storage";
 
 export function MovieListPage() {
-  // 1. 현재 페이지 상태
+  // 1.현재 페이지 상태
   const [page, setPage] = useState(1);
 
-  // 2. 북마크 상태
+  // 2.북마크 상태
   const [bookmarkIds, setBookmarkIds] = useState<number[]>(
     () => readBookmarkIds()
   );
 
-  // 3. useQuery로 TMDB 영화 목록 요청
+  // 3.useQuery로 TMDB 영화 목록 요청
   const moviesQuery = useQuery({
     queryKey: ["movies", "list", { page }],
     queryFn: () => getMovies({ page }),
   });
 
-  // 4. 응답 데이터 가져오기
+  // 4.응답 데이터 가져오기
   const movies = moviesQuery.data?.results ?? [];
   const totalPages = moviesQuery.data?.total_pages ?? 0;
 
-  // 5. 페이지 변경
+  // 5.페이지 변경
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage);
   };
 
-  // 6. 북마크 변경 사항 저장
+  // 6.북마크 변경 사항 저장
   useEffect(() => {
     saveBookmarkIds(bookmarkIds);
   }, [bookmarkIds]);
 
-  // 7. 북마크 토글
+  // 7.북마크 토글
   const handleBookmarkToggle = (id: number) => {
     setBookmarkIds((prevIds) =>
       prevIds.includes(id)
@@ -49,7 +49,7 @@ export function MovieListPage() {
     );
   };
 
-  // 8. TMDB 데이터를 기존 Movie 타입에 맞게 변환
+  // 8.TMDB 데이터를 기존 Movie 타입에 맞게 변환
   const movieList: Movie[] = movies.map((movie) => ({
     id: movie.id,
     title: movie.title,
