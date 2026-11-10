@@ -1,0 +1,31 @@
+.signup-page { flex: 1; display: flex; justify-content: center; align-items: center; padding: 80px 16px; background: #f6f7f9; }
+.signup-form { width: 100%; max-width: 380px; }
+.signup-form h1 { margin: 0 0 14px; font-size: 30px; font-weight: 700; line-height: 1.4; letter-spacing: -1.2px; color: #181b20; }
+
+.signup-field { margin-bottom: 16px; }
+.signup-field label { display: block; margin-bottom: 8px; font-size: 12px; font-weight: 700; color: #181b20; }
+
+.signup-input { display: flex; align-items: center; min-height: 42px; padding: 0 12px; background: #fff; border: 1px solid #e3e6eb; border-radius: 6px; transition: border-color .15s; }
+.signup-input:focus-within { border-color: #6b93f7; box-shadow: 0 0 0 1px #6b93f7; }
+.signup-input input { flex: 1; min-width: 0; padding: 10px 0; border: 0; background: transparent; color: #181b20; font: inherit; font-size: 13px; outline: none; }
+.signup-input input::placeholder { color: #98a2b3; }
+.signup-input button { flex-shrink: 0; margin-left: 8px; padding: 4px 0; border: 0; background: transparent; color: #2860f5; font-size: 10px; font-weight: 700; cursor: pointer; }
+.signup-input button:hover { text-decoration: underline; }
+.signup-input button:focus-visible { outline: 2px solid #2860f5; outline-offset: 2px; border-radius: 3px; }
+
+.signup-hint { margin: 8px 0 0; font-size: 9px; line-height: 1.5; color: #929aa7; }
+.signup-message { margin: 8px 0 0; font-size: 11px; line-height: 1.5; }
+.signup-message--error { color: #d64545; }
+.signup-message--success { color: #12a150; }
+
+.signup-submit { width: 100%; min-height: 40px; margin-top: 6px; border: 0; border-radius: 6px; background: #2860f5; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s; }
+.signup-submit:hover:not(:disabled) { background: #1d4ed8; }
+.signup-submit:disabled { background: #9cb7f7; cursor: not-allowed; }
+.signup-submit:focus-visible { outline: 2px solid #2860f5; outline-offset: 3px; }
+
+.signup-login { margin: 18px 0 0; text-align: center; font-size: 10px; color: #929aa7; }
+.signup-login a { color: #2860f5; font-weight: 700; text-decoration: none; }
+.signup-login a:hover { text-decoration: underline; }
+
+.signup-input__icon { flex-shrink: 0; width: 14px; height: 14px; margin-right: 8px; opacity: .55; }
+.signup-input button:disabled { color: #b6bfcc; cursor: not-allowed; text-decoration: none; }
