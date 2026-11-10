@@ -1,0 +1,49 @@
+.movie-search-page { flex: 1; background: #f6f7f9; }
+.movie-search-page__inner { max-width: 1200px; margin: 0 auto; padding: 150px 60px 80px; }
+.movie-search-page h1 { margin: 0 0 28px; text-align: center; font-size: 32px; line-height: 1.4; letter-spacing: -1.2px; }
+.movie-search-form { display: flex; align-items: center; gap: 12px; max-width: 660px; min-height: 60px; margin: 0 auto; padding: 10px 12px 10px 18px; background: #fff; border: 1px solid #181b20; border-radius: 9px; box-shadow: 0 10px 24px rgb(0 0 0 / 8%); }
+.movie-search-form__icon { width: 20px; height: 20px; opacity: .6; }
+.movie-search-form input { flex: 1; min-width: 0; padding: 8px 0; border: 0; background: transparent; color: #181b20; font: inherit; font-size: 13px; outline: none; }
+.movie-search-form input::placeholder { color: #98a2b3; }
+.movie-search-form:focus-within { outline: 2px solid #2860f5; outline-offset: 2px; }
+.movie-search-form button { display: grid; place-items: center; flex-shrink: 0; border: 0; cursor: pointer; }
+.movie-search-form__submit { min-height: 36px; padding: 0 14px; border-radius: 5px; background: #181b20; color: #fff; font-size: 12px; font-weight: 700; }
+.movie-search-form__submit:hover { background: #374151; }
+.movie-search-form__clear { width: 30px; height: 34px; background: transparent; }
+.movie-search-form__clear img { width: 20px; height: 20px; opacity: .6; }
+.movie-search-page--results .movie-search-page__inner { padding-top: 22px; }
+.movie-search-page--results h1 { text-align: left; margin-bottom: 14px; }
+.movie-search-page--results .movie-search-form { max-width: none; min-height: 48px; padding: 5px 8px 5px 14px; border-color: #dfe3e9; box-shadow: none; border-radius: 7px; }
+.movie-search-summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0 14px; border-bottom: 1px solid #e3e6eb; }
+.movie-search-summary h2 { margin: 0; font-size: 15px; }
+.movie-search-summary > span { flex-shrink: 0; font-size: 11px; color: #929aa7; }
+.movie-search-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 34px; list-style: none; margin: 0; padding: 0; }
+.movie-search-result { display: flex; gap: 16px; min-width: 0; padding: 18px 0 24px; border-bottom: 1px solid #e3e6eb; }
+.movie-search-result__poster { flex: 0 0 108px; }
+.movie-search-result__poster img { display: block; width: 108px; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 8px; }
+.movie-search-result__body { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 3px 0 20px; }
+.movie-search-result h3 { margin: 0 0 8px; font-size: 15px; line-height: 1.4; letter-spacing: -.5px; }
+.movie-search-result__meta { display: flex; flex-wrap: wrap; gap: 4px 8px; color: #929aa7; font-size: 10px; line-height: 1.5; }
+.movie-search-result p { margin: 10px 0 14px; font-size: 11px; line-height: 1.7; color: #707987; }
+.movie-search-result__link { margin-top: auto; color: #2860f5; font-size: 11px; font-weight: 700; text-decoration: none; }
+.movie-search-result__link:hover { text-decoration: underline; }
+.movie-search-empty { padding: 80px 16px; text-align: center; }
+.movie-search-empty p { font-weight: 700; }
+.movie-search-empty span { color: #707987; font-size: 14px; }
+.movie-search-footer { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 18px max(24px, calc((100% - 1080px) / 2)); background: #fff; border-top: 1px solid #e3e6eb; color: #707987; font-size: 10px; }
+.movie-search-footer img { width: 24px; }
+@media (max-width: 900px) {
+  .movie-search-page__inner { padding-right: 32px; padding-left: 32px; }
+  .movie-search-results { column-gap: 24px; }
+  .movie-search-result__poster { flex-basis: 90px; }
+  .movie-search-result__poster img { width: 90px; }
+}
+@media (max-width: 600px) {
+  .movie-search-page__inner { padding: 90px 16px 48px; }
+  .movie-search-page h1 { font-size: 26px; }
+  .movie-search-results { grid-template-columns: 1fr; }
+  .movie-search-summary h2 { font-size: 13px; }
+  .movie-search-footer { padding: 16px; font-size: 9px; }
+}
+
+.movie-search-page h1, .movie-search-summary h2, .movie-search-result h3 { font-weight: 700; }

@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+:root {
+  font-family: Arial, 'Noto Sans KR', sans-serif;
+  color: #181b20;
+  background: #f6f7f9;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+#root { min-height: 100svh; display: flex; flex-direction: column; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button { font: inherit; }
