@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Seongeun's Profile</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+
+  <body>
+    <main class="card">
+      <h1>윤성은 | Seongeun Yoon</h1>
+      <p>사용자 경험과 데이터를 연결하는 개발자를 꿈꾸고 있습니다.</p>
+
+      <section>
+        <h2>Currently Learning</h2>
+
+        <ul class="skills">
+          <li>React & TypeScript</li>
+          <li>Data Analysis</li>
+          <li>Artificial Intelligence</li>
+        </ul>
+      </section>
+
+      <button>Explore My Work</button>
+      <script>
+        const student = {
+          name: "성은",
+          skills: ["HTML", "CSS", "JavaScript"],
+        };
+
+        function printSkills(skills) {
+          for (const skill of skills) {
+            if (skill === "JavaScript") {
+              console.log(`${skill}: 화면에 동작을 더합니다.`);
+            } else {
+              console.log(skill);
+            }
+          }
+        }
+
+        console.log(student.name);
+        printSkills(student.skills);
+      </script>
+    </main>
+  </body>
+</html>
