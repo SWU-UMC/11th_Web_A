@@ -1,7 +1,19 @@
 import { Link } from "@tanstack/react-router";
 import { cn } from "../../utils/cn";
+import { useQuery } from "@tanstack/react-query";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
 
 export function Header() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
   return (
     <header className="border-b border-[#E5E7EB] bg-white flex items-center justify-between px-6 py-4">
       <div className="flex items-center gap-10">
@@ -38,6 +50,10 @@ export function Header() {
           <Link
             to="/mypage"
             className="relative py-2 text-sm font-medium text-gray-400 hover:text-black transition-colors"
+            activeProps={{
+              className:
+                "!text-black !font-bold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-black",
+            }}
           >
             내 정보
           </Link>
@@ -50,11 +66,15 @@ export function Header() {
         >
           <img src="../../../public/icons/search.svg" />
         </Link>
-        <Link to="/login">
-          <button className="py-2.5 px-4 border-0 rounded-[10px] bg-blue-600 text-white hover:bg-blue-700">
-            로그인
-          </button>
-        </Link>
+        <button className="py-2.5 px-4 border-0 rounded-[10px] bg-blue-600 text-white hover:bg-blue-700">
+          {!accessToken ? (
+            <Link to="/login">로그인</Link>
+          ) : meQuery.isLoading ? (
+            <span className="h-10 w-24 animate-pulse rounded-lg bg-gray-200" />
+          ) : (
+            <Link to="/mypage">마이페이지</Link>
+          )}
+        </button>
       </div>
     </header>
   );

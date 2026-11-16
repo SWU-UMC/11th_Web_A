@@ -10,12 +10,11 @@ export interface LoginResponse {
   code: string;
   message: string;
   result: {
-    memberId: number;
-    email: string;
     nickname: string;
+    accessToken: string;
   };
 }
 
 export function login(body: LoginRequest) {
-  return apiClient.post("login", { json: body }).json<LoginResponse>();
+  return apiClient.post("auth/login", { json: body }).json<LoginResponse>();
 }

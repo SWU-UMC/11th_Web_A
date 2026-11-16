@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { login } from "../../api/members/login";
-import { useNavigate } from "@tanstack/react-router";
+import { useLoginMutation } from "../../hooks/use-login-mutation";
 
 // 이메일 형식 검사
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -18,8 +17,9 @@ type DefaultFormValue = (typeof DEFAULT_FORM)[DefaultFormKey];
 
 export function LoginPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
+  const loginMutation = useLoginMutation();
+  const canSubmit =
+    EMAIL_REGEX.test(form.email.trim()) && form.password.length > 0;
 
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
   const isPasswordValid = PASSWORD_REGEX.test(form.password);
@@ -33,22 +33,14 @@ export function LoginPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!isFormValid || isSubmitting) return;
-    setIsSubmitting(true);
-    try {
-      const response = await login({
-        email: form.email.trim(),
-        password: form.password,
-      });
-      alert(response.message);
-      navigate({ to: "/signup" });
-    } catch {
-      alert("로그인에 실패했어요. 다시 시도해 주세요.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canSubmit || loginMutation.isPending) return;
+
+    loginMutation.mutate({
+      email: form.email.trim(),
+      password: form.password,
+    });
   };
 
   return (
@@ -115,14 +107,14 @@ export function LoginPage() {
         </div>
         <button
           type="submit"
-          disabled={!isFormValid}
+          disabled={!canSubmit || loginMutation.isPending}
           className={`w-full py-3.5 rounded-lg font-semibold text-white transition mt-2 ${
             isFormValid
               ? "bg-blue-600 hover:bg-blue-700 cursor-pointer"
               : "bg-blue-300 cursor-not-allowed"
           }`}
         >
-          로그인
+          {loginMutation.isPending ? "로그인 중" : "로그인"}
         </button>
         <div className="text-center mt-2 text-sm text-gray-600">
           처음이신가요?{" "}

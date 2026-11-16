@@ -1,15 +1,19 @@
-import { useState } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import MovieGrid from "../../components/movies/movie-grid";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { Link } from "@tanstack/react-router";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
 
 export function MyPage() {
-  // 예시 데이터
-  const [userInfo] = useState({
-    nickname: "gs0428",
-    email: "gwangsoo@cinemalab.kr",
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 
   // 즐겨찾기 영화 데이터
@@ -55,13 +59,17 @@ export function MyPage() {
             <div>
               <p className="text-xs text-gray-400 mb-1 font-medium">닉네임</p>
               <p className="text-base font-semibold text-gray-900">
-                {userInfo.nickname}
+                {meQuery.isLoading
+                  ? "불러오는 중..."
+                  : (meQuery.data?.nickname ?? "로그인이 필요해요")}
               </p>
             </div>
             <div>
               <p className="text-xs text-gray-400 mb-1 font-medium">이메일</p>
               <p className="text-base font-semibold text-gray-900">
-                {userInfo.email}
+                {meQuery.isLoading
+                  ? "불러오는 중..."
+                  : (meQuery.data?.email ?? "로그인이 필요해요")}
               </p>
             </div>
           </div>

@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
-import { signup } from "../../api/members/signup";
-import { useNavigate } from "@tanstack/react-router";
+import { useSignupMutation } from "../../hooks/use-signup-mutation";
 
 // 이메일 형식 검사
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,8 +31,7 @@ export function SignupPage() {
     email: DEFAULT_DUPLICATE_CHECK,
     nickname: DEFAULT_DUPLICATE_CHECK,
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const navigate = useNavigate();
+  const signupMutation = useSignupMutation();
 
   // 입력값의 유효성 검사
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
@@ -112,26 +110,16 @@ export function SignupPage() {
     }
   };
 
-  const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
-    // 폼 제출 시 페이지 새로고침 방지
-    e.preventDefault();
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    if (!canSubmit || isSubmitting) return;
-    setIsSubmitting(true);
+    if (!canSubmit || signupMutation.isPending) return;
 
-    try {
-      const response = await signup({
-        email: form.email.trim(),
-        nickname: form.nickname.trim(),
-        password: form.password,
-      });
-      alert(response.message);
-      navigate({ to: "/login" });
-    } catch {
-      alert("회원가입에 실패했어요. 다시 시도해 주세요.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    signupMutation.mutate({
+      email: form.email.trim(),
+      nickname: form.nickname.trim(),
+      password: form.password,
+    });
   };
 
   return (
@@ -251,14 +239,14 @@ export function SignupPage() {
         </div>
         <button
           type="submit"
-          disabled={!canSubmit || isSubmitting}
+          disabled={!canSubmit || signupMutation.isPending}
           className={`w-full py-3.5 rounded-lg font-semibold text-white transition mt-2 ${
             isFormValid
               ? "bg-blue-600 hover:bg-blue-700 cursor-pointer"
               : "bg-blue-300 cursor-not-allowed"
           }`}
         >
-          {isSubmitting ? "가입 중" : "가입하기"}
+          {signupMutation.isPending ? "가입 중" : "가입하기"}
         </button>
         <div className="text-center mt-2 text-sm text-gray-600">
           이미 계정이 있나요?{" "}
