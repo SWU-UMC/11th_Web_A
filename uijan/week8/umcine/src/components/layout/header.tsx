@@ -33,7 +33,9 @@ function Header() {
           <Link to="/search">
             검색
           </Link>
-          <a>내 정보</a>
+          <Link to="/mypage">
+            내 정보
+          </Link>
         </nav>
       </div>
 
@@ -42,6 +44,7 @@ function Header() {
           <img src="/movie-icons/search.svg" alt="검색" />
         </button>
 
+        <button className="h-[38px] cursor-pointer rounded-[7px] border-0 bg-[#5367e8] px-[17px] text-sm font-semibold text-white">
         {!accessToken ? (
           <Link to="/login">로그인</Link>
         ) : meQuery.isLoading ? (
@@ -49,6 +52,7 @@ function Header() {
         ) : (
           <Link to="/mypage">마이페이지</Link>
         )}
+        </button>
       </div>
     </header>
   );

@@ -4,13 +4,13 @@ import { readBookmarkIds, saveBookmarkIds } from "../../utils/bookmark-storage";
 import { getMovieDetail } from "../../api/movies/get-movie-detail"; // 기존 영화 상세 조회 API 함수 경로로 수정
 import type { Movie } from "../../types/movie";
 
-const MOCK_USER = {
+const USER = {
   nickname: "1로할래요",
   email: "taken@naver.com",
 };
 
 export function MyPage() {
-  const [user] = useState(MOCK_USER);
+  const [user] = useState(USER);
   const [bookmarkIds, setBookmarkIds] = useState<number[]>(() =>
     readBookmarkIds(),
   );
