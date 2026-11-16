@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail.ts";
@@ -7,17 +8,22 @@ import {
   getTmdbBackdropUrl,
   getTmdbPosterUrl,
 } from "../../utils/movies/tmdb-image.ts";
+import { useCreateRatingMutation } from "../../hooks/use-create-rating-mutation.ts";
 
 export function MovieDetailPage() {
   const { movieId: movieIdParam } = useParams({ from: "/movies/$movieId" });
   const movieId = Number(movieIdParam);
   const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState("");
 
   const movieDetailQuery = useQuery({
     queryKey: ["movies", "detail", movieId],
     queryFn: () => getMovieDetail(movieId),
     enabled: isValidMovieId,
   });
+
+  const createRatingMutation = useCreateRatingMutation();
 
   const isBookmarked = useBookmarkStore((state) =>
     state.bookmarkedMovieIds.includes(movieId),
@@ -143,6 +149,71 @@ export function MovieDetailPage() {
             </button>
           </div>
         </div>
+
+        <aside
+          className="border-l border-gray-200 pl-0 lg:pl-8"
+          aria-labelledby="rating-title"
+        >
+          <h2
+            id="rating-title"
+            className="mb-2 text-xl font-bold text-gray-900"
+          >
+            내 평점
+          </h2>
+          <p className="mb-4 text-sm text-gray-500">
+            별점은 필수, 후기는 선택이에요.
+          </p>
+          <div className="mb-4 flex gap-2" role="group" aria-label="별점 선택">
+            {[1, 2, 3, 4, 5].map((score) => (
+              <button
+                key={score}
+                type="button"
+                onClick={() => setRating(score)}
+                aria-label={`${score}점`}
+                aria-pressed={rating === score}
+                className={`flex h-11 w-11 items-center justify-center rounded-lg border text-2xl transition-colors ${rating >= score ? "border-blue-600 bg-blue-50 text-blue-600" : "border-gray-200 bg-white text-gray-400 hover:border-blue-300"}`}
+              >
+                <img
+                  src="/icons/star.svg"
+                  alt=""
+                  aria-hidden="true"
+                  className="h-6 w-6 transition-[filter]"
+                  style={{
+                    filter:
+                      rating >= score
+                        ? "brightness(0) saturate(100%) invert(27%) sepia(94%) saturate(2852%) hue-rotate(216deg) brightness(101%) contrast(105%)"
+                        : "none",
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+          <label htmlFor="movie-review" className="sr-only">
+            후기
+          </label>
+          <textarea
+            id="movie-review"
+            value={review}
+            onChange={(event) => setReview(event.target.value)}
+            placeholder="영화를 보고 느낀 점을 남겨보세요."
+            rows={5}
+            className="mb-3 w-full resize-y rounded-lg border border-gray-200 p-4 text-sm outline-none placeholder:text-gray-400 focus:border-blue-500"
+          />
+          <button
+            type="button"
+            disabled={rating === 0 || createRatingMutation.isPending}
+            onClick={() =>
+              createRatingMutation.mutate({
+                movieId,
+                score: rating,
+                comment: review.trim(),
+              })
+            }
+            className="w-full rounded-lg bg-gray-900 px-4 py-3 font-semibold text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+          >
+            {createRatingMutation.isPending ? "저장 중..." : "평점 저장"}
+          </button>
+        </aside>
       </div>
     </main>
   );
