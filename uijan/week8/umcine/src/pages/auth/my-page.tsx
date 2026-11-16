@@ -1,19 +1,28 @@
 import { useEffect, useState } from "react";
-import MovieCard from "../../components/movies/movie-card"; // 실제 MovieCard 경로로 수정
-import { readBookmarkIds, saveBookmarkIds } from "../../utils/bookmark-storage"; // readBookmarkIds가 정의된 실제 파일 경로로 수정
-import { getMovieDetail } from "../../api/movies/get-movie-detail"; // 기존 영화 상세 조회 API 함수 경로로 수정
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import MovieCard from "../../components/movies/movie-card";
+import { getMovieDetail } from "../../api/movies/get-movie-detail";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
+// [수정 1] 옛날 bookmark-storage 대신 useBookmarkStore 불러오기
+import { useBookmarkStore } from "../../stores/bookmark-store";
 import type { Movie } from "../../types/movie";
 
-const USER = {
-  nickname: "1로할래요",
-  email: "taken@naver.com",
-};
-
 export function MyPage() {
-  const [user] = useState(USER);
-  const [bookmarkIds, setBookmarkIds] = useState<number[]>(() =>
-    readBookmarkIds(),
-  );
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  // [수정 2] Zustand 스토어에서 북마크된 영화 ID 목록과 토글 함수를 직접 가져옴
+  const bookmarkIds = useBookmarkStore((state) => state.bookmarkedMovieIds);
+  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
+
   const [bookmarkedMovies, setBookmarkedMovies] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,33 +39,29 @@ export function MyPage() {
     const loadBookmarkedMovies = async () => {
       setIsLoading(true);
       try {
-        
-const movies: Movie[] = await Promise.all(
-  bookmarkIds.map(async (id) => {
-    const detail = await getMovieDetail(id);
+        const movies: Movie[] = await Promise.all(
+          bookmarkIds.map(async (id) => {
+            const detail = await getMovieDetail(id);
 
-    return {
-      id: detail.id,
-      title: detail.title,
-      originalTitle: detail.original_title,
-      releaseDate: detail.release_date,
-
-      posterPath: detail.poster_path
-        ? `https://image.tmdb.org/t/p/w500${detail.poster_path}`
-        : "",
-
-      backdropPath: detail.backdrop_path
-        ? `https://image.tmdb.org/t/p/w500${detail.backdrop_path}`
-        : "",
-
-      genres: detail.genres.map((genre) => genre.name),
-      runtime: detail.runtime ? String(detail.runtime) : "",
-      tagline: detail.tagline,
-      overview: detail.overview,
-      isBookmarked: true,
-    };
-  }),
-);
+            return {
+              id: detail.id,
+              title: detail.title,
+              originalTitle: detail.original_title,
+              releaseDate: detail.release_date,
+              posterPath: detail.poster_path
+                ? `https://image.tmdb.org/t/p/w500${detail.poster_path}`
+                : "",
+              backdropPath: detail.backdrop_path
+                ? `https://image.tmdb.org/t/p/w500${detail.backdrop_path}`
+                : "",
+              genres: detail.genres.map((genre) => genre.name),
+              runtime: detail.runtime ? String(detail.runtime) : "",
+              tagline: detail.tagline,
+              overview: detail.overview,
+              isBookmarked: true,
+            };
+          }),
+        );
 
         if (!isCancelled) {
           setBookmarkedMovies(movies);
@@ -77,13 +82,6 @@ const movies: Movie[] = await Promise.all(
     };
   }, [bookmarkIds]);
 
-  // 북마크 해제 토글 핸들러
-  const handleBookmarkToggle = (movieId: number) => {
-    const nextIds = bookmarkIds.filter((id) => id !== movieId);
-    saveBookmarkIds(nextIds);
-    setBookmarkIds(nextIds);
-  };
-
   return (
     <div className="min-h-[calc(100vh-120px)] bg-[#f8f9fa] px-6 py-10">
       <div className="mx-auto w-full max-w-[1080px]">
@@ -92,13 +90,12 @@ const movies: Movie[] = await Promise.all(
           <h1 className="text-[26px] font-bold tracking-tight text-gray-900">
             내 정보
           </h1>
-          <button
-            type="button"
-            onClick={() => console.log("정보 수정 페이지로 이동")}
+          <Link
+            to="/mypage_edit"
             className="rounded-lg bg-[#4b6bfb] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#3b5bdb]"
           >
             정보 수정
-          </button>
+          </Link>
         </div>
 
         {/* 기본 정보 섹션 */}
@@ -116,14 +113,16 @@ const movies: Movie[] = await Promise.all(
                   닉네임
                 </p>
                 <p className="text-sm font-bold text-gray-900">
-                  {user.nickname}
+                  {meQuery.data?.nickname ?? "-"}
                 </p>
               </div>
               <div>
                 <p className="mb-1 text-[11px] font-medium text-gray-400">
                   이메일
                 </p>
-                <p className="text-sm font-bold text-gray-900">{user.email}</p>
+                <p className="text-sm font-bold text-gray-900">
+                  {meQuery.data?.email ?? "-"}
+                </p>
               </div>
             </div>
           </div>
@@ -147,7 +146,8 @@ const movies: Movie[] = await Promise.all(
                 <MovieCard
                   key={movie.id}
                   movie={movie}
-                  onBookmarkToggle={handleBookmarkToggle}
+                  // [수정 3] 스토어의 toggleBookmark를 그대로 연결
+                  onBookmarkToggle={toggleBookmark}
                 />
               ))}
             </div>

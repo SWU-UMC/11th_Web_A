@@ -1,24 +1,19 @@
 
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-
 import MovieGrid from "../../components/movies/movie-grid";
 import Pagination from "../../components/movies/pagination";
 import { getMovies } from "../../api/movies/get-movies";
 import type { Movie } from "../../types/movie";
-import {
-  readBookmarkIds,
-  saveBookmarkIds,
-} from "../../utils/bookmark-storage";
+import { useBookmarkStore } from "../../stores/bookmark-store";
 
 export function MovieListPage() {
   // 1.현재 페이지 상태
   const [page, setPage] = useState(1);
 
   // 2.북마크 상태
-  const [bookmarkIds, setBookmarkIds] = useState<number[]>(
-    () => readBookmarkIds()
-  );
+const bookmarkIds = useBookmarkStore((state) => state.bookmarkedMovieIds);
+const handleBookmarkToggle = useBookmarkStore((state) => state.toggleBookmark);
 
   // 3.useQuery로 TMDB 영화 목록 요청
   const moviesQuery = useQuery({
@@ -33,20 +28,6 @@ export function MovieListPage() {
   // 5.페이지 변경
   const handlePageChange = (nextPage: number) => {
     setPage(nextPage);
-  };
-
-  // 6.북마크 변경 사항 저장
-  useEffect(() => {
-    saveBookmarkIds(bookmarkIds);
-  }, [bookmarkIds]);
-
-  // 7.북마크 토글
-  const handleBookmarkToggle = (id: number) => {
-    setBookmarkIds((prevIds) =>
-      prevIds.includes(id)
-        ? prevIds.filter((movieId) => movieId !== id)
-        : [...prevIds, id]
-    );
   };
 
   // 8.TMDB 데이터를 기존 Movie 타입에 맞게 변환
