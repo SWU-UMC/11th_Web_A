@@ -1,4 +1,10 @@
-import { useQueries } from "@tanstack/react-query";
+import {
+  useQueries,
+  useQuery,
+} from "@tanstack/react-query";
+import { getMe } from "../../api/members/me";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
+import { useAuthStore } from "../../stores/auth-store";
 import { Link } from "@tanstack/react-router";
 import {
   useState,
@@ -9,16 +15,29 @@ import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { useBookmarkStore } from "../../stores/bookmark-store";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
-const INITIAL_MEMBER = {
-  email: "week7@example.com",
-  nickname: "영화팬",
-};
 
 const MOVIES_PER_PAGE = 3;
 
 export function MyPage() {
-  const [member, setMember] = useState(INITIAL_MEMBER);
-  const [form, setForm] = useState(INITIAL_MEMBER);
+  const accessToken = useAuthStore(
+  (state) => state.accessToken,
+);
+
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const updateMeMutation = useUpdateMeMutation();
+
+  const [form, setForm] = useState({
+    email: "",
+    nickname: "",
+  });
+
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<string | null>(
     null,
@@ -62,12 +81,26 @@ export function MyPage() {
     nickname.length >= 2 && nickname.length <= 12;
 
   const handleStartEdit = () => {
-    setForm(member);
-    setIsEditing(true);
-  };
+  if (!meQuery.data) {
+    return;
+  }
+
+  setForm({
+    email: meQuery.data.email,
+    nickname: meQuery.data.nickname,
+  });
+
+  setIsEditing(true);
+};
 
   const handleCancelEdit = () => {
-    setForm(member);
+    if (meQuery.data) {
+      setForm({
+        email: meQuery.data.email,
+        nickname: meQuery.data.nickname,
+      });
+    }
+
     setIsEditing(false);
   };
 
@@ -107,14 +140,54 @@ export function MyPage() {
       return;
     }
 
-    setMember({
-      email: member.email,
-      nickname,
-    });
-
-    setIsEditing(false);
-    alert("내 정보가 수정되었어요.");
+    updateMeMutation.mutate(
+      {
+        nickname,
+      },
+      {
+        onSuccess: () => {
+          setIsEditing(false);
+        },
+      },
+    );
   };
+
+  if (!accessToken) {
+  return (
+    <main className="mx-auto w-[min(1160px,calc(100%-48px))] py-16">
+      <p className="text-gray-500">
+        로그인이 필요한 페이지예요.
+      </p>
+
+      <Link
+        className="mt-4 inline-flex rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white"
+        to="/login"
+      >
+        로그인하기
+      </Link>
+    </main>
+  );
+}
+
+if (meQuery.isPending) {
+  return (
+    <main className="mx-auto w-[min(1160px,calc(100%-48px))] py-16">
+      <p className="text-gray-500">
+        회원 정보를 불러오는 중이에요.
+      </p>
+    </main>
+  );
+}
+
+if (meQuery.isError || !meQuery.data) {
+  return (
+    <main className="mx-auto w-[min(1160px,calc(100%-48px))] py-16">
+      <p className="text-red-600">
+        회원 정보를 불러오지 못했어요.
+      </p>
+    </main>
+  );
+}
 
   if (isEditing) {
     return (
@@ -135,9 +208,14 @@ export function MyPage() {
               <button
                 className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-blue-300"
                 type="submit"
-                disabled={!isNicknameValid}
+                disabled={
+                  !isNicknameValid ||
+                  updateMeMutation.isPending
+                }
               >
-                변경사항 저장
+                {updateMeMutation.isPending
+                  ? "저장 중"
+                  : "변경사항 저장"}
               </button>
             </div>
 
@@ -329,7 +407,7 @@ export function MyPage() {
                 닉네임
               </span>
               <strong className="mt-2 block">
-                {member.nickname}
+                {meQuery.data.nickname}
               </strong>
             </div>
 
@@ -338,7 +416,7 @@ export function MyPage() {
                 이메일
               </span>
               <strong className="mt-2 block">
-                {member.email}
+                {meQuery.data.email}
               </strong>
             </div>
           </div>
