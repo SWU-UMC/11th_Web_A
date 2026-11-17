@@ -14,6 +14,9 @@ export function useLoginMutation() {
       setAccessToken(response.result.accessToken);
       alert("로그인에 성공했어요.");
       queryClient.invalidateQueries({ queryKey: ["members", "me"] });
+      // 즐겨찾기와 평점은 회원마다 다르므로 이전 계정의 캐시가 보이지 않게 지워요.
+      queryClient.removeQueries({ queryKey: ["favorites"] });
+      queryClient.removeQueries({ queryKey: ["ratings"] });
       navigate({ to: "/" });
     },
     onError: () => {
