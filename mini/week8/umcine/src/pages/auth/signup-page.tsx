@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { checkEmailDuplicate } from "../../api/members/check-email-duplicate";
 import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
-import { signup } from "../../api/members/signup";
+import { useSignupMutation } from "../../hooks/use-signup-mutation";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -35,7 +35,7 @@ export function SignupPage() {
     nickname: DEFAULT_DUPLICATE_CHECK,
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const signupMutation = useSignupMutation();
 
   // 입력값의 유효성을 검사해요.
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
@@ -155,29 +155,17 @@ export function SignupPage() {
     }
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent<HTMLFormElement>,
-  ) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-    if (!canSubmit || isSubmitting) return;
+    if (!canSubmit || signupMutation.isPending) return;
 
-    setIsSubmitting(true);
-
-    try {
-      const response = await signup({
-        email: form.email.trim(),
-        nickname: form.nickname.trim(),
-        password: form.password,
-      });
-
-      alert(response.message);
-    } catch {
-      alert("회원가입에 실패했어요. 다시 시도해 주세요.");
-    } finally {
-      setIsSubmitting(false);
-    }
-};
+    signupMutation.mutate({
+      email: form.email.trim(),
+      nickname: form.nickname.trim(),
+      password: form.password,
+    });
+  };
 
   return (
     <main className="flex flex-1 justify-center bg-[#f6f7f9]">
@@ -341,10 +329,10 @@ export function SignupPage() {
           {/* 가입하기 */}
           <button
             type="submit"
-            disabled={!canSubmit || isSubmitting}
+            disabled={!canSubmit || signupMutation.isPending}
             className="h-[48px] w-full rounded-lg border border-[#2563eb] bg-[#2563eb] text-[13px] font-bold text-white disabled:border-[#e3e6eb] disabled:bg-[#e3e6eb] disabled:text-[#969da8]"
           >
-            {isSubmitting ? "가입 중" : "가입하기"}
+            {signupMutation.isPending ? "가입 중" : "가입하기"}
           </button>
         </form>
 
@@ -360,4 +348,4 @@ export function SignupPage() {
       </section>
     </main>
   );
-}
+}
