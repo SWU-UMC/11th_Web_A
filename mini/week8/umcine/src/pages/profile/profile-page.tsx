@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
 import { useState } from "react";
-import { getFavorites } from "../../api/favorites/get-favorites";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import MovieCard from "../../components/movies/movie-card";
+import { useFavoritesQuery } from "../../hooks/use-favorites-query";
 import { useMeQuery } from "../../hooks/use-me-query";
 
 const PAGE_SIZE = 10;
@@ -13,10 +13,7 @@ export function ProfilePage() {
   const meQuery = useMeQuery();
 
   // 서버에는 영화 ID만 저장되어 있으므로, 목록을 받은 뒤 영화 정보는 TMDB 상세 query로 가져와요.
-  const favoritesQuery = useQuery({
-    queryKey: ["favorites", "list"],
-    queryFn: getFavorites,
-  });
+  const favoritesQuery = useFavoritesQuery();
   const movieIds = favoritesQuery.data?.map((favorite) => favorite.movieId) ?? [];
   const [requestedPage, setRequestedPage] = useState(1);
   const totalPages = Math.ceil(movieIds.length / PAGE_SIZE);
