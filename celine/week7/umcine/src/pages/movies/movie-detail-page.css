@@ -1,0 +1,46 @@
+.movie-detail { flex: 1; background: #f6f7f9; }
+.movie-detail-hero { position: relative; height: 300px; color: #fff; background: #242424; overflow: hidden; }
+.movie-detail-hero__image { position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: center 42%; }
+.movie-detail-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgb(0 0 0 / 68%), transparent 80%), linear-gradient(0deg, rgb(0 0 0 / 45%), transparent 65%); }
+.movie-detail-hero__inner { position: relative; z-index: 1; max-width: 1200px; height: 100%; margin: auto; padding: 18px 60px; display: flex; flex-direction: column; justify-content: space-between; }
+.movie-detail-back { display: inline-flex; align-items: center; align-self: flex-start; gap: 8px; color: #fff; font-size: 12px; text-decoration: none; }
+.movie-detail-back span { font-size: 26px; line-height: 1; }
+.movie-detail-hero h1 { margin: 0 0 5px; font-size: 36px; font-weight: 700; line-height: 1.2; letter-spacing: -1.5px; }
+.movie-detail-hero p { margin: 0 0 4px; font-size: 12px; line-height: 1.5; }
+.movie-detail-hero__meta { font-weight: 600; }
+.movie-detail-hero__meta span { padding: 0 3px; }
+.movie-detail-content { display: grid; grid-template-columns: 168px minmax(0, 1fr) 300px; gap: 28px; max-width: 1200px; margin: auto; padding: 22px 60px 150px; align-items: start; }
+.movie-detail-poster { display: block; width: 168px; aspect-ratio: 2 / 2.85; object-fit: cover; border-radius: 8px; box-shadow: 0 10px 22px rgb(0 0 0 / 15%); }
+.movie-detail h2 { font-size: 17px; line-height: 1.5; font-weight: 700; margin: 0 0 10px; letter-spacing: -.5px; }
+.movie-detail-story p { font-size: 12px; line-height: 1.9; color: #707987; margin: 0 0 16px; white-space: pre-line; }
+.movie-detail-bookmark { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border: 0; border-radius: 5px; background: #2860f5; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; }
+.movie-detail-bookmark img { width: 16px; height: 16px; filter: invert(1); }
+.movie-detail-review { padding-left: 26px; border-left: 1px solid #e3e6eb; }
+.movie-detail-review h2 { margin-bottom: 2px; }
+.movie-detail-review__hint { color: #929aa7; font-size: 11px; margin: 0 0 8px; }
+.movie-detail-stars { display: flex; gap: 5px; margin-bottom: 10px; }
+.movie-detail-stars button { display: grid; place-items: center; width: 31px; height: 32px; padding: 0; border: 1px solid #e3e6eb; border-radius: 5px; background: #fff; color: #667085; font-size: 23px; cursor: pointer; }
+.movie-detail-stars button.is-selected { color: #2860f5; border-color: #bdceff; background: #edf2ff; }
+.movie-detail-review textarea { display: block; width: 100%; min-height: 85px; padding: 12px; resize: vertical; border: 1px solid #e3e6eb; border-radius: 6px; background: #fff; font: inherit; font-size: 11px; }
+.movie-detail-review textarea::placeholder { color: #98a2b3; }
+.movie-detail-save { width: 100%; margin-top: 8px; min-height: 34px; border: 0; border-radius: 5px; background: #181b20; color: #fff; font-size: 12px; font-weight: 700; cursor: pointer; }
+.movie-detail-review__message { font-size: 11px; color: #465468; margin-top: 8px; }
+.movie-detail button:focus-visible, .movie-detail a:focus-visible, .movie-detail textarea:focus-visible { outline: 2px solid #2860f5; outline-offset: 3px; }
+.movie-detail-footer { display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 18px max(24px, calc((100% - 1080px) / 2)); border-top: 1px solid #eceef2; background: #fff; color: #707987; font-size: 10px; }
+.movie-detail-footer img { width: 24px; }
+.movie-detail-missing { padding: 60px; }
+@media (max-width: 1000px) {
+  .movie-detail-content { grid-template-columns: 140px minmax(0, 1fr) 240px; gap: 20px; padding-right: 32px; padding-left: 32px; }
+  .movie-detail-poster { width: 140px; }
+  .movie-detail-hero__inner { padding-right: 32px; padding-left: 32px; }
+  .movie-detail-review { padding-left: 20px; }
+}
+@media (max-width: 700px) {
+  .movie-detail-hero { height: 280px; }
+  .movie-detail-hero__inner { padding: 18px 16px; }
+  .movie-detail-hero h1 { font-size: 28px; }
+  .movie-detail-content { grid-template-columns: 110px minmax(0, 1fr); padding: 24px 16px 60px; gap: 20px 16px; }
+  .movie-detail-poster { width: 110px; }
+  .movie-detail-review { grid-column: 1 / -1; padding: 20px 0 0; border-left: 0; border-top: 1px solid #e3e6eb; }
+  .movie-detail-footer { padding: 16px; font-size: 9px; }
+}
