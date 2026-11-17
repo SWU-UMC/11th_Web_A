@@ -1,4 +1,4 @@
-import { Link, useParams } from "@tanstack/react-router";
+import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, type SubmitEvent } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
@@ -9,7 +9,9 @@ import {
 } from "../../utils/movies/tmdb-image";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import { cn } from "../../utils/cn";
-import { useBookmarkStore } from "../../stores/bookmark-store";
+import { useFavoriteStatusQuery } from "../../hooks/use-favorite-status-query";
+import { useToggleFavoriteMutation } from "../../hooks/use-toggle-favorite-mutation";
+import { useAuthStore } from "../../stores/auth-store";
 import { isHTTPError } from "ky";
 import { createRating } from "../../api/ratings/create-rating";
 
@@ -103,13 +105,25 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
       ? `${Math.floor(movie.runtime / 60)}시간 ${movie.runtime % 60}분`
       : "상영 시간 정보가 없어요.";
 
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(movie.id),
-  );
+  const navigate = useNavigate();
+  const accessToken = useAuthStore((state) => state.accessToken);
 
-  const toggleBookmark = useBookmarkStore(
-    (state) => state.toggleBookmark,
-  );
+  // 즐겨찾기 여부는 서버에서 조회하고, 버튼을 누르면 등록 또는 해제해요.
+  const favoriteStatusQuery = useFavoriteStatusQuery(movie.id);
+  const toggleFavoriteMutation = useToggleFavoriteMutation(movie.id);
+  const isBookmarked = favoriteStatusQuery.data?.isFavorite ?? false;
+
+  const handleToggleFavorite = () => {
+    if (!accessToken) {
+      alert("로그인 후 즐겨찾기할 수 있어요.");
+      navigate({ to: "/login" });
+      return;
+    }
+
+    if (favoriteStatusQuery.isPending || toggleFavoriteMutation.isPending) return;
+
+    toggleFavoriteMutation.mutate(isBookmarked);
+  };
 
   // 기존 평점/후기 기능
   const [rating, setRating] = useState(0);
@@ -237,9 +251,10 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
           <button
             type="button"
             aria-pressed={isBookmarked}
-            onClick={() => toggleBookmark(movie.id)}
+            disabled={toggleFavoriteMutation.isPending}
+            onClick={handleToggleFavorite}
             className={cn(
-              "inline-flex h-[42px] min-w-[107px] cursor-pointer items-center justify-center gap-2 rounded-lg border px-4 text-[14px] font-extrabold leading-[17px] text-white",
+              "inline-flex h-[42px] min-w-[107px] cursor-pointer items-center justify-center gap-2 rounded-lg border px-4 text-[14px] font-extrabold leading-[17px] text-white disabled:cursor-wait disabled:opacity-70",
               isBookmarked
                 ? "border-[#1d4ed8] bg-[#1d4ed8]"
                 : "border-white bg-[#2563eb]",
