@@ -10,6 +10,7 @@ import {
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import { cn } from "../../utils/cn";
 import { useFavoriteStatusQuery } from "../../hooks/use-favorite-status-query";
+import { useMyRatingsQuery } from "../../hooks/use-my-ratings-query";
 import { useToggleFavoriteMutation } from "../../hooks/use-toggle-favorite-mutation";
 import { useAuthStore } from "../../stores/auth-store";
 import { isHTTPError } from "ky";
@@ -125,9 +126,17 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
     toggleFavoriteMutation.mutate(isBookmarked);
   };
 
-  // 기존 평점/후기 기능
-  const [rating, setRating] = useState(0);
-  const [review, setReview] = useState("");
+  // 내 평점 목록에서 현재 영화의 평점을 찾아요.
+  const myRatingsQuery = useMyRatingsQuery();
+  const myRating = myRatingsQuery.data?.find(
+    (savedMyRating) => savedMyRating.movieId === movie.id,
+  );
+
+  // 입력 전에는 저장된 내 평점을 보여주고, 입력을 시작하면 입력값을 사용해요.
+  const [ratingInput, setRatingInput] = useState<number | null>(null);
+  const [reviewInput, setReviewInput] = useState<string | null>(null);
+  const rating = ratingInput ?? myRating?.score ?? 0;
+  const review = reviewInput ?? myRating?.comment ?? "";
   const [savedRating, setSavedRating] = useState<{
     rating: number;
     review: string;
@@ -297,6 +306,23 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
             별점은 필수, 후기는 선택이에요.
           </p>
 
+          {!accessToken ? (
+            <p className="text-[13px] leading-5 text-[#606774]">
+              로그인 후 평점을 남길 수 있어요.{" "}
+              <Link to="/login" className="font-bold text-[#2563eb] underline underline-offset-2">
+                로그인하기
+              </Link>
+            </p>
+          ) : myRatingsQuery.isLoading ? (
+            <p role="status" className="text-[13px] leading-5 text-[#606774]">
+              내 평점을 불러오는 중이에요.
+            </p>
+          ) : myRating ? (
+            <p role="status" className="text-[13px] leading-5 text-[#606774]">
+              이 영화에 {myRating.score}점을 남겼어요.
+            </p>
+          ) : null}
+
           <div
             className="flex gap-1"
             role="group"
@@ -310,7 +336,7 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
                 aria-label={`${value}점`}
                 aria-pressed={rating === value}
                 onClick={() => {
-                  setRating(value);
+                  setRatingInput(value);
                   setRatingError(false);
                   setSavedRating(null);
                 }}
@@ -340,7 +366,7 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
             placeholder="영화를 보고 느낀 점을 남겨보세요."
             value={review}
             onChange={(event) => {
-              setReview(event.target.value);
+              setReviewInput(event.target.value);
               setSavedRating(null);
             }}
             className="h-[102px] w-full resize-none rounded-lg border border-[#e3e6eb] bg-white px-3 pb-[18px] pt-4 text-[13px] leading-[19.5px] placeholder:text-[#969da8] focus:border-[#2563eb] focus:outline-none"
@@ -348,7 +374,8 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
 
           <button
             type="submit"
-            className="h-[42px] w-full cursor-pointer rounded-lg border border-white bg-[#17191e] px-4 text-[14px] font-extrabold leading-[17px] text-white hover:bg-[#30343d]"
+            disabled={!accessToken}
+            className="h-[42px] w-full cursor-pointer rounded-lg border border-white bg-[#17191e] px-4 text-[14px] font-extrabold leading-[17px] text-white hover:bg-[#30343d] disabled:cursor-not-allowed disabled:opacity-50"
           >
             평점 저장
           </button>
