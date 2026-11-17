@@ -1,4 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useMeQuery } from "../../hooks/use-me-query";
 import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
@@ -13,7 +14,19 @@ export default function Header() {
   const authButtonClassName = "flex h-[42px] min-w-[71px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4 text-[14px] font-extrabold leading-none text-white no-underline";
 
   const accessToken = useAuthStore((state) => state.accessToken);
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const meQuery = useMeQuery();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    setAccessToken(null);
+    // 로그인한 회원의 데이터가 다음 사용자에게 보이지 않도록 캐시를 지워요.
+    queryClient.removeQueries({ queryKey: ["members", "me"] });
+    queryClient.removeQueries({ queryKey: ["favorites"] });
+    queryClient.removeQueries({ queryKey: ["ratings"] });
+    navigate({ to: "/" });
+  };
 
   return (
     <header className="flex min-h-[91px] shrink-0 flex-wrap items-center justify-between gap-4 border-b border-[#e3e6eb] bg-white px-4 py-6 md:px-10 xl:px-20">
@@ -39,7 +52,16 @@ export default function Header() {
         ) : meQuery.isLoading ? (
           <span className="h-[42px] w-24 animate-pulse rounded-lg bg-gray-200" aria-label="내 정보를 불러오는 중" />
         ) : (
-          <Link className={authButtonClassName} to="/profile">마이페이지</Link>
+          <>
+            <Link className={authButtonClassName} to="/profile">마이페이지</Link>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex h-[42px] cursor-pointer items-center justify-center rounded-lg border border-[#e3e6eb] bg-white px-4 text-[14px] font-extrabold leading-none text-[#606774]"
+            >
+              로그아웃
+            </button>
+          </>
         )}
       </div>
     </header>
