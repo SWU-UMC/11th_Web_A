@@ -3,7 +3,7 @@ import {
   checkEmail,
   checkNickname,
 } from "../../api/members";
-import { signup } from "../../api/members/signup";
+import { useSignupMutation } from "../../hooks/use-signup-mutation";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -34,7 +34,8 @@ export function SignupPage() {
     nickname: DEFAULT_DUPLICATE_CHECK,
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const signupMutation = useSignupMutation();
 
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
 
@@ -144,30 +145,20 @@ export function SignupPage() {
     }
   };
 
-  const handleSubmit = async (
+  const handleSubmit = (
     event: SubmitEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
 
-    if (!canSubmit || isSubmitting) {
+    if (!canSubmit || signupMutation.isPending) {
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      const response = await signup({
-        email: form.email.trim(),
-        nickname: form.nickname.trim(),
-        password: form.password,
-      });
-
-      alert(response.message);
-    } catch {
-      alert("회원가입에 실패했어요. 다시 시도해 주세요.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    signupMutation.mutate({
+      email: form.email.trim(),
+      nickname: form.nickname.trim(),
+      password: form.password,
+    });
   };
 
   return (
@@ -369,9 +360,9 @@ export function SignupPage() {
         <button
           className="mt-2 rounded-lg bg-blue-600 py-3.5 font-bold text-white disabled:cursor-not-allowed disabled:bg-gray-300"
           type="submit"
-          disabled={!canSubmit || isSubmitting}
+          disabled={!canSubmit || signupMutation.isPending}
         >
-          {isSubmitting ? "가입 중" : "가입하기"}
+          {signupMutation.isPending ? "가입 중" : "가입하기"}
         </button>
       </form>
     </main>
