@@ -1,5 +1,8 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { previewProfile } from "./preview-profile";
+import { getMe } from "../../api/members/me";
+import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
+import { useAuthStore } from "../../stores/auth-store";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const fieldClassName = "h-[49px] w-full rounded-lg border border-[#e3e6eb] bg-white text-[14px]";
@@ -8,6 +11,30 @@ export function ProfileEditPage() {
   const withdrawDialog = useRef<HTMLDialogElement>(null);
   const [imageUrl, setImageUrl] = useState("");
   const [imageError, setImageError] = useState("");
+
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  // 입력 전에는 내 정보의 닉네임을 보여주고, 입력을 시작하면 입력값을 사용해요.
+  const [nicknameInput, setNicknameInput] = useState<string | null>(null);
+  const form = { nickname: nicknameInput ?? meQuery.data?.nickname ?? "" };
+
+  const updateMeMutation = useUpdateMeMutation();
+  const nickname = form.nickname.trim();
+  const canSubmit = nickname.length >= 2 && nickname.length <= 12;
+
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canSubmit || updateMeMutation.isPending) return;
+
+    updateMeMutation.mutate({ nickname });
+  };
 
   useEffect(() => {
     if (imageUrl) return () => URL.revokeObjectURL(imageUrl);
@@ -37,13 +64,17 @@ export function ProfileEditPage() {
               닉네임과 프로필 이미지만 변경할 수 있어요.
             </p>
           </div>
-          {/* TODO: 계정 정보 수정 API를 연결하면 저장과 닉네임 중복 확인을 활성화해요. */}
-          <button type="button" disabled className="h-[42px] rounded-lg border border-white bg-[#2563eb] px-4 text-[14px] font-bold text-white">
-            변경사항 저장
+          <button
+            type="submit"
+            form="profile-edit-form"
+            disabled={!canSubmit || updateMeMutation.isPending}
+            className="h-[42px] rounded-lg border border-white bg-[#2563eb] px-4 text-[14px] font-bold text-white disabled:opacity-50"
+          >
+            {updateMeMutation.isPending ? "저장 중" : "변경사항 저장"}
           </button>
         </div>
 
-        <form className="mt-8 grid items-center gap-6 md:grid-cols-2 md:gap-0" onSubmit={(event) => event.preventDefault()}>
+        <form id="profile-edit-form" className="mt-8 grid items-center gap-6 md:grid-cols-2 md:gap-0" onSubmit={handleSubmit}>
           <div className="flex min-h-[133px] flex-col items-center justify-center gap-1">
             <label className="relative flex size-[82px] cursor-pointer items-center justify-center rounded-full bg-[#e3e6eb] focus-within:outline-2 focus-within:outline-[#2563eb]">
               <input type="file" accept="image/*" aria-label="프로필 이미지 선택" aria-describedby="profile-image-hint" className="sr-only" onChange={handleImageChange} />
@@ -65,13 +96,19 @@ export function ProfileEditPage() {
             <div className="grid gap-2">
               <label htmlFor="profile-nickname" className="text-[13px] font-bold leading-4">닉네임</label>
               <div className={fieldClassName + " flex items-center focus-within:border-[#2563eb]"}>
-                <input id="profile-nickname" defaultValue={previewProfile.nickname} className="h-full min-w-0 flex-1 px-[15px] outline-none" />
+                <input
+                  id="profile-nickname"
+                  value={form.nickname}
+                  onChange={(event) => setNicknameInput(event.target.value)}
+                  className="h-full min-w-0 flex-1 px-[15px] outline-none"
+                />
+                {/* TODO: 닉네임 중복 확인을 연결해요. */}
                 <button type="button" disabled className="shrink-0 px-[13px] text-[12px] font-extrabold text-[#2563eb]">중복 확인</button>
               </div>
             </div>
             <div className="grid gap-2">
               <label htmlFor="profile-email" className="text-[13px] font-bold leading-4">이메일</label>
-              <input id="profile-email" type="email" readOnly value={previewProfile.email} className={fieldClassName + " px-[15px]"} />
+              <input id="profile-email" type="email" readOnly value={meQuery.data?.email ?? ""} className={fieldClassName + " px-[15px]"} />
             </div>
           </div>
         </form>
