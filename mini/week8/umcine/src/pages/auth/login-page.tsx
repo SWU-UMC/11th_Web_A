@@ -1,3 +1,4 @@
+import { isHTTPError } from "ky";
 import { useState } from "react";
 import { useLoginMutation } from "../../hooks/use-login-mutation";
 
@@ -31,11 +32,20 @@ export function LoginPage() {
   const showPasswordError =
     form.password.length > 0 && !isPasswordValid;
 
+  // 서버가 이메일 또는 비밀번호가 틀렸다고 응답(401)한 경우에만 표시해요.
+  const showLoginError =
+    loginMutation.isError &&
+    isHTTPError(loginMutation.error) &&
+    loginMutation.error.response.status === 401;
+
   // 입력값 변경
   const handleChangeField = (
     key: FormKey,
     value: string,
   ) => {
+    // 입력값을 고치면 이전 로그인 실패 안내를 지워요.
+    if (loginMutation.isError) loginMutation.reset();
+
     setForm((prev) => ({
       ...prev,
       [key]: value,
@@ -136,7 +146,6 @@ export function LoginPage() {
           </div>
 
           {/* 로그인 */}
-          {/* TODO: 인증 실패 시 로그인 버튼 아래에 "이메일 또는 비밀번호가 올바르지 않아요."를 표시해요. */}
           <button
             type="submit"
             disabled={!canSubmit || loginMutation.isPending}
@@ -144,6 +153,12 @@ export function LoginPage() {
           >
             {loginMutation.isPending ? "로그인 중" : "로그인"}
           </button>
+
+          {showLoginError && (
+            <p role="alert" className="m-0 text-[11px] leading-[13px] text-red-500">
+              이메일 또는 비밀번호가 올바르지 않아요.
+            </p>
+          )}
         </form>
 
         <p className="m-0 mt-[16px] text-center text-[13px] font-normal leading-[16px] text-[#606774]">

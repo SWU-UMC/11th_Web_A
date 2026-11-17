@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { isHTTPError } from "ky";
 import { login } from "../api/auth/login";
 import { useAuthStore } from "../stores/auth-store";
 
@@ -19,7 +20,10 @@ export function useLoginMutation() {
       queryClient.removeQueries({ queryKey: ["ratings"] });
       navigate({ to: "/" });
     },
-    onError: () => {
+    onError: (error) => {
+      // 이메일·비밀번호가 틀린 경우(401)는 로그인 화면의 버튼 아래에 안내해요.
+      if (isHTTPError(error) && error.response.status === 401) return;
+
       alert("로그인에 실패했어요. 다시 시도해 주세요.");
     },
   });
