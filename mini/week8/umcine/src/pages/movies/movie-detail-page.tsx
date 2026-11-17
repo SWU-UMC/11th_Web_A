@@ -148,7 +148,11 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
 
     // 백엔드에 평점 저장 요청
     try {
-      await createRating(movie.id, {score: rating, comment: review.trim() || null});
+      await createRating({
+        movieId: movie.id,
+        score: rating,
+        comment: review.trim() || null,
+      });
 
       setSavedRating({
       rating,

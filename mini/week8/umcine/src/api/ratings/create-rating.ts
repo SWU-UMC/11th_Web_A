@@ -1,16 +1,17 @@
-import ky from "ky";
+import { authApi } from "../auth-api";
+import type { Rating, RatingApiResponse } from "./models";
 
-interface CreateRatingRequest {
+export interface CreateRatingRequest {
+  movieId: number;
   score: number;
   comment: string | null;
 }
 
-const apiClient = ky.create({
-  baseUrl: `${import.meta.env.VITE_API_BASE_URL}/`,
-});
+// POST /ratings: 작성자는 토큰으로 식별하므로 memberId를 보내지 않아요.
+export async function createRating(body: CreateRatingRequest): Promise<Rating> {
+  const response = await authApi
+    .post("ratings", { json: body })
+    .json<RatingApiResponse<Rating>>();
 
-function createRating(movieId: number, request: CreateRatingRequest) {
-  return apiClient.post(`movies/${movieId}/ratings`, { json: request }).json();
+  return response.result;
 }
-
-export { createRating };

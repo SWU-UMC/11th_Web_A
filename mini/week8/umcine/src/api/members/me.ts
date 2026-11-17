@@ -1,6 +1,8 @@
 import { authApi } from "../auth-api";
 
 export interface MemberInfo {
+  // 평점 목록 조회(GET /members/{memberId}/ratings)에 사용해요.
+  memberId: number;
   email: string;
   nickname: string;
   createdAt: string;
