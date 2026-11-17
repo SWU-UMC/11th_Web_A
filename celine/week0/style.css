@@ -1,0 +1,32 @@
+.card {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 30px;
+        border: 1px solid #ddd;
+        border-radius: 16px;
+      }
+
+      h1 {
+        color: purple;
+      }
+
+      p {
+        color: #666;
+      }
+
+      .skills {
+        display: flex;
+        gap: 12px;
+      }
+
+      button {
+        background-color: purple;
+        color: white;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+      }
+
+      button:hover {
+        background-color: purple;
+      }
