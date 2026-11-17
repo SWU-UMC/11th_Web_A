@@ -1,17 +1,23 @@
 import { Link } from "@tanstack/react-router";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { getFavorites } from "../../api/favorites/get-favorites";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import MovieCard from "../../components/movies/movie-card";
 import { useMeQuery } from "../../hooks/use-me-query";
-import { useBookmarkStore } from "../../stores/bookmark-store";
 
 const PAGE_SIZE = 10;
 
 export function ProfilePage() {
   // (protected) Layout Route를 통과했으므로 이 페이지는 로그인한 상태에서만 열려요.
   const meQuery = useMeQuery();
-  const movieIds = useBookmarkStore((state) => state.bookmarkedMovieIds);
+
+  // 서버에는 영화 ID만 저장되어 있으므로, 목록을 받은 뒤 영화 정보는 TMDB 상세 query로 가져와요.
+  const favoritesQuery = useQuery({
+    queryKey: ["favorites", "list"],
+    queryFn: getFavorites,
+  });
+  const movieIds = favoritesQuery.data?.map((favorite) => favorite.movieId) ?? [];
   const [requestedPage, setRequestedPage] = useState(1);
   const totalPages = Math.ceil(movieIds.length / PAGE_SIZE);
   const page = Math.min(requestedPage, Math.max(1, totalPages));
@@ -62,7 +68,11 @@ export function ProfilePage() {
 
       <section aria-labelledby="favorites-heading" className="mt-7">
         <h2 id="favorites-heading" className="mb-4 text-[17px] font-bold leading-5">내 즐겨찾기</h2>
-        {totalPages === 0 ? (
+        {favoritesQuery.isPending ? (
+          <p role="status" className="text-sm text-[#606774]">즐겨찾기 목록을 불러오는 중이에요.</p>
+        ) : favoritesQuery.isError ? (
+          <p role="alert" className="text-sm text-[#606774]">즐겨찾기 목록을 불러오지 못했어요.</p>
+        ) : totalPages === 0 ? (
           <p className="text-sm text-[#606774]">아직 즐겨찾기한 영화가 없어요.</p>
         ) : (
           <>
