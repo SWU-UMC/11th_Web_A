@@ -3,6 +3,10 @@ import { useLoginMutation } from "../../hooks/use-login-mutation";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// 영문 대소문자, 숫자, 특수문자를 모두 포함해 8자 이상
+const PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,}$/;
+
 const DEFAULT_FORM = {
   email: "",
   password: "",
@@ -17,11 +21,15 @@ export function LoginPage() {
 
   // 입력값의 유효성을 검사해요.
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
-  const canSubmit = isEmailValid && form.password.length > 0;
+  const isPasswordValid = PASSWORD_REGEX.test(form.password);
+  const canSubmit = isEmailValid && isPasswordValid;
 
   // 입력을 시작한 필드에만 오류를 표시해요.
   const showEmailError =
     form.email.length > 0 && !isEmailValid;
+
+  const showPasswordError =
+    form.password.length > 0 && !isPasswordValid;
 
   // 입력값 변경
   const handleChangeField = (
@@ -119,6 +127,12 @@ export function LoginPage() {
                 className="min-w-0 flex-1 border-0 bg-transparent px-3 pr-4 text-[14px] font-normal leading-[17px] text-[#17191e] outline-none placeholder:text-[#969da8]"
               />
             </div>
+
+            {showPasswordError && (
+              <p className="m-0 text-[11px] leading-[13px] text-red-500">
+                영문 대소문자, 숫자, 특수문자(!@#$%^&*)를 모두 포함해 8자 이상 입력해 주세요.
+              </p>
+            )}
           </div>
 
           {/* 로그인 */}
