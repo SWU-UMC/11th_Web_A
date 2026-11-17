@@ -1,10 +1,7 @@
 import { useState } from "react";
+import { useLoginMutation } from "../../hooks/use-login-mutation";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// 영문 대소문자, 숫자, 특수문자를 모두 포함해 8자 이상
-const PASSWORD_REGEX =
-  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[A-Za-z0-9!@#$%^&*]{8,}$/;
 
 const DEFAULT_FORM = {
   email: "",
@@ -16,17 +13,15 @@ type FormKey = keyof typeof DEFAULT_FORM;
 export function LoginPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
 
+  const loginMutation = useLoginMutation();
+
   // 입력값의 유효성을 검사해요.
   const isEmailValid = EMAIL_REGEX.test(form.email.trim());
-
-  const isPasswordValid = PASSWORD_REGEX.test(form.password);
+  const canSubmit = isEmailValid && form.password.length > 0;
 
   // 입력을 시작한 필드에만 오류를 표시해요.
   const showEmailError =
     form.email.length > 0 && !isEmailValid;
-
-  const showPasswordError =
-    form.password.length > 0 && !isPasswordValid;
 
   // 입력값 변경
   const handleChangeField = (
@@ -40,11 +35,14 @@ export function LoginPage() {
   };
 
   // 로그인
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canSubmit || loginMutation.isPending) return;
 
-    // TODO: 로그인 API 연결 후 인증 실패 시 로그인 버튼 아래에
-    // "이메일 또는 비밀번호가 올바르지 않아요."를 표시해요.
+    loginMutation.mutate({
+      email: form.email.trim(),
+      password: form.password,
+    });
   };
 
   return (
@@ -121,21 +119,16 @@ export function LoginPage() {
                 className="min-w-0 flex-1 border-0 bg-transparent px-3 pr-4 text-[14px] font-normal leading-[17px] text-[#17191e] outline-none placeholder:text-[#969da8]"
               />
             </div>
-
-            {showPasswordError && (
-              <p className="m-0 text-[11px] leading-[13px] text-red-500">
-                영문 대소문자, 숫자, 특수문자(!@#$%^&*)를 모두 포함해 8자 이상 입력해 주세요.
-              </p>
-            )}
           </div>
 
           {/* 로그인 */}
+          {/* TODO: 인증 실패 시 로그인 버튼 아래에 "이메일 또는 비밀번호가 올바르지 않아요."를 표시해요. */}
           <button
             type="submit"
-            disabled={!isEmailValid || !isPasswordValid}
+            disabled={!canSubmit || loginMutation.isPending}
             className="h-[48px] w-full rounded-lg border border-[#2563eb] bg-[#2563eb] text-[13px] font-bold text-white disabled:border-[#e3e6eb] disabled:bg-[#e3e6eb] disabled:text-[#969da8]"
           >
-            로그인
+            {loginMutation.isPending ? "로그인 중" : "로그인"}
           </button>
         </form>
 
@@ -151,4 +144,4 @@ export function LoginPage() {
       </section>
     </main>
   );
-}
+}
