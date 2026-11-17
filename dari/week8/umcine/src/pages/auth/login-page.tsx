@@ -1,23 +1,35 @@
-import { useState, type SubmitEvent } from "react";
 import { Link } from "@tanstack/react-router";
+import {
+  useState,
+  type SubmitEvent,
+} from "react";
+import { useLoginMutation } from "../../hooks/use-login-mutation";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const loginMutation = useLoginMutation();
+
   const canSubmit =
-    email.trim().length > 0 && password.length > 0;
+    EMAIL_REGEX.test(email.trim()) &&
+    password.length > 0;
 
   const handleSubmit = (
     event: SubmitEvent<HTMLFormElement>,
   ) => {
     event.preventDefault();
 
-    if (!canSubmit) {
+    if (!canSubmit || loginMutation.isPending) {
       return;
     }
 
-    alert("로그인 API는 8주차에 연결할 예정이에요.");
+    loginMutation.mutate({
+      email: email.trim(),
+      password,
+    });
   };
 
   return (
@@ -33,6 +45,7 @@ export function LoginPage() {
       <form
         className="mt-10 flex flex-col gap-5"
         onSubmit={handleSubmit}
+        noValidate
       >
         <div>
           <label
@@ -77,9 +90,13 @@ export function LoginPage() {
         <button
           className="mt-2 rounded-lg bg-blue-600 py-3.5 font-bold text-white disabled:cursor-not-allowed disabled:bg-gray-300"
           type="submit"
-          disabled={!canSubmit}
+          disabled={
+            !canSubmit || loginMutation.isPending
+          }
         >
-          로그인
+          {loginMutation.isPending
+            ? "로그인 중"
+            : "로그인"}
         </button>
       </form>
 
