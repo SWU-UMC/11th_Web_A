@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
+import { checkNicknameDuplicate } from "../../api/members/check-nickname-duplicate";
 import { useMeQuery } from "../../hooks/use-me-query";
 import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
 
@@ -18,7 +19,35 @@ export function ProfileEditPage() {
 
   const updateMeMutation = useUpdateMeMutation();
   const nickname = form.nickname.trim();
-  const canSubmit = nickname.length >= 2 && nickname.length <= 12;
+  const isNicknameValid = nickname.length >= 2 && nickname.length <= 12;
+  const isNicknameChanged = nickname !== meQuery.data?.nickname;
+
+  // 중복 확인을 통과한 닉네임을 기억해요. 입력값이 바뀌면 다시 확인해야 해요.
+  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
+  const [availableNickname, setAvailableNickname] = useState<string | null>(null);
+  const isNicknameAvailable = availableNickname === nickname;
+
+  // 형식이 맞고, 기존 닉네임과 다르고, 중복 확인을 통과해야 저장할 수 있어요.
+  const canSubmit = isNicknameValid && isNicknameChanged && isNicknameAvailable;
+  const showNicknameError = nicknameInput !== null && !isNicknameValid;
+
+  const handleCheckNickname = async () => {
+    if (!isNicknameValid || !isNicknameChanged || isCheckingNickname) return;
+
+    setIsCheckingNickname(true);
+
+    try {
+      const { available } = await checkNicknameDuplicate(nickname);
+
+      setAvailableNickname(available ? nickname : null);
+      alert(available ? "사용할 수 있는 닉네임이에요." : "이미 사용 중인 닉네임이에요.");
+    } catch {
+      setAvailableNickname(null);
+      alert("중복 확인에 실패했어요. 다시 시도해 주세요.");
+    } finally {
+      setIsCheckingNickname(false);
+    }
+  };
 
   const handleSubmit = (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -90,12 +119,22 @@ export function ProfileEditPage() {
                 <input
                   id="profile-nickname"
                   value={form.nickname}
+                  disabled={isCheckingNickname}
                   onChange={(event) => setNicknameInput(event.target.value)}
                   className="h-full min-w-0 flex-1 px-[15px] outline-none"
                 />
-                {/* TODO: 닉네임 중복 확인을 연결해요. */}
-                <button type="button" disabled className="shrink-0 px-[13px] text-[12px] font-extrabold text-[#2563eb]">중복 확인</button>
+                <button
+                  type="button"
+                  disabled={!isNicknameValid || !isNicknameChanged || isCheckingNickname}
+                  onClick={handleCheckNickname}
+                  className="shrink-0 px-[13px] text-[12px] font-extrabold text-[#2563eb] disabled:text-[#969da8]"
+                >
+                  {isCheckingNickname ? "확인 중" : isNicknameAvailable && isNicknameChanged ? "확인 완료" : "중복 확인"}
+                </button>
               </div>
+              {showNicknameError && (
+                <p className="text-[11px] leading-[13px] text-red-500">닉네임은 2~12자로 입력해 주세요.</p>
+              )}
             </div>
             <div className="grid gap-2">
               <label htmlFor="profile-email" className="text-[13px] font-bold leading-4">이메일</label>
