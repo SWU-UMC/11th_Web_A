@@ -1,6 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { getMe } from "../../api/members/me";
+import { useMeQuery } from "../../hooks/use-me-query";
 import { useAuthStore } from "../../stores/auth-store";
 import { cn } from "../../utils/cn";
 
@@ -14,13 +13,7 @@ export default function Header() {
   const authButtonClassName = "flex h-[42px] min-w-[71px] items-center justify-center rounded-lg border border-white bg-[#2563eb] px-4 text-[14px] font-extrabold leading-none text-white no-underline";
 
   const accessToken = useAuthStore((state) => state.accessToken);
-  const meQuery = useQuery({
-    queryKey: ["members", "me"],
-    queryFn: getMe,
-    enabled: Boolean(accessToken),
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  });
+  const meQuery = useMeQuery();
 
   return (
     <header className="flex min-h-[91px] shrink-0 flex-wrap items-center justify-between gap-4 border-b border-[#e3e6eb] bg-white px-4 py-6 md:px-10 xl:px-20">

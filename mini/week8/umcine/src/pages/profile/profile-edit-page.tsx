@@ -1,8 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
-import { getMe } from "../../api/members/me";
+import { useMeQuery } from "../../hooks/use-me-query";
 import { useUpdateMeMutation } from "../../hooks/use-update-me-mutation";
-import { useAuthStore } from "../../stores/auth-store";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const fieldClassName = "h-[49px] w-full rounded-lg border border-[#e3e6eb] bg-white text-[14px]";
@@ -12,14 +10,7 @@ export function ProfileEditPage() {
   const [imageUrl, setImageUrl] = useState("");
   const [imageError, setImageError] = useState("");
 
-  const accessToken = useAuthStore((state) => state.accessToken);
-  const meQuery = useQuery({
-    queryKey: ["members", "me"],
-    queryFn: getMe,
-    enabled: Boolean(accessToken),
-    staleTime: 5 * 60 * 1000,
-    retry: false,
-  });
+  const meQuery = useMeQuery();
 
   // 입력 전에는 내 정보의 닉네임을 보여주고, 입력을 시작하면 입력값을 사용해요.
   const [nicknameInput, setNicknameInput] = useState<string | null>(null);
