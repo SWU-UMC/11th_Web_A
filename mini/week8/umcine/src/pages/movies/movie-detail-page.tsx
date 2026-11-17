@@ -1,6 +1,6 @@
 import { Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useState, type SubmitEvent } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import type { TmdbMovieDetail } from "../../api/movies/models";
 import {
@@ -11,10 +11,13 @@ import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-
 import { cn } from "../../utils/cn";
 import { useFavoriteStatusQuery } from "../../hooks/use-favorite-status-query";
 import { useMyRatingsQuery } from "../../hooks/use-my-ratings-query";
+import {
+  useDeleteRatingMutation,
+  useSaveRatingMutation,
+} from "../../hooks/use-rating-mutations";
 import { useToggleFavoriteMutation } from "../../hooks/use-toggle-favorite-mutation";
 import { useAuthStore } from "../../stores/auth-store";
 import { isHTTPError } from "ky";
-import { createRating } from "../../api/ratings/create-rating";
 
 export function MovieDetailPage() {
   const { movieId } = useParams({ from: "/movies/$movieId" });
@@ -137,14 +140,22 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
   const [reviewInput, setReviewInput] = useState<string | null>(null);
   const rating = ratingInput ?? myRating?.score ?? 0;
   const review = reviewInput ?? myRating?.comment ?? "";
-  const [savedRating, setSavedRating] = useState<{
-    rating: number;
-    review: string;
-  } | null>(null);
+  const queryClient = useQueryClient();
+  const saveRatingMutation = useSaveRatingMutation();
+  const deleteRatingMutation = useDeleteRatingMutation();
+  const isRatingPending = saveRatingMutation.isPending || deleteRatingMutation.isPending;
+
+  const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [ratingError, setRatingError] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  async function handleSaveRating(event: SubmitEvent<HTMLFormElement>) {
+  // 저장한 값이 화면에 그대로 보이도록 입력값을 비우고 서버 데이터를 표시해요.
+  function resetRatingInputs() {
+    setRatingInput(null);
+    setReviewInput(null);
+  }
+
+  function handleSaveRating(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (rating === 0) {
@@ -152,29 +163,61 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
       return;
     }
 
+    if (isRatingPending) return;
+
     setRatingError(false);
     setSaveError(null);
+    setSavedMessage(null);
 
-    // 백엔드에 평점 저장 요청
-    try {
-      await createRating({
+    const comment = review.trim() || null;
+    const isUpdate = myRating !== undefined;
+
+    saveRatingMutation.mutate(
+      {
+        ratingId: myRating?.ratingId,
         movieId: movie.id,
         score: rating,
-        comment: review.trim() || null,
-      });
+        comment,
+      },
+      {
+        onSuccess: () => {
+          resetRatingInputs();
+          setSavedMessage(
+            `${rating}${comment ? "점과 후기를" : "점을"} ${isUpdate ? "수정" : "저장"}했어요.`,
+          );
+        },
+        onError: (error) => {
+          if (isHTTPError(error) && error.response.status === 409) {
+            // 이미 남긴 평점이 있는데 화면에 반영되지 않은 경우 목록을 다시 조회해요.
+            queryClient.invalidateQueries({ queryKey: ["ratings", "member"] });
+            setSaveError("이미 평점을 남긴 영화예요.");
+            return;
+          }
 
-      setSavedRating({
-      rating,
-      review: review.trim(),
-      });
-    } catch (error) {
-      setSaveError(
-        isHTTPError(error) && error.response.status === 409
-        ? "이미 평점을 남긴 영화예요."
-        : "평점을 저장하지 못했어요.",
-      );
-    }
-    
+          setSaveError(
+            isUpdate ? "평점을 수정하지 못했어요." : "평점을 저장하지 못했어요.",
+          );
+        },
+      },
+    );
+  }
+
+  function handleDeleteRating() {
+    if (!myRating || isRatingPending) return;
+    if (!confirm("내 평점을 삭제할까요?")) return;
+
+    setSaveError(null);
+    setSavedMessage(null);
+
+    deleteRatingMutation.mutate(myRating.ratingId, {
+      onSuccess: () => {
+        resetRatingInputs();
+        setSavedMessage("평점을 삭제했어요.");
+      },
+      onError: () => {
+        setSaveError("평점을 삭제하지 못했어요.");
+      },
+    });
   }
 
   return (
@@ -338,7 +381,7 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
                 onClick={() => {
                   setRatingInput(value);
                   setRatingError(false);
-                  setSavedRating(null);
+                  setSavedMessage(null);
                 }}
                 className={cn(
                   "flex size-[38px] cursor-pointer items-center justify-center rounded-lg border",
@@ -367,18 +410,35 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
             value={review}
             onChange={(event) => {
               setReviewInput(event.target.value);
-              setSavedRating(null);
+              setSavedMessage(null);
             }}
             className="h-[102px] w-full resize-none rounded-lg border border-[#e3e6eb] bg-white px-3 pb-[18px] pt-4 text-[13px] leading-[19.5px] placeholder:text-[#969da8] focus:border-[#2563eb] focus:outline-none"
           />
 
-          <button
-            type="submit"
-            disabled={!accessToken}
-            className="h-[42px] w-full cursor-pointer rounded-lg border border-white bg-[#17191e] px-4 text-[14px] font-extrabold leading-[17px] text-white hover:bg-[#30343d] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            평점 저장
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={!accessToken || isRatingPending}
+              className="h-[42px] w-full cursor-pointer rounded-lg border border-white bg-[#17191e] px-4 text-[14px] font-extrabold leading-[17px] text-white hover:bg-[#30343d] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saveRatingMutation.isPending
+                ? "저장 중"
+                : myRating
+                  ? "평점 수정"
+                  : "평점 저장"}
+            </button>
+
+            {myRating && (
+              <button
+                type="button"
+                disabled={isRatingPending}
+                onClick={handleDeleteRating}
+                className="h-[42px] shrink-0 cursor-pointer rounded-lg border border-[#d92d20] bg-white px-4 text-[14px] font-extrabold leading-[17px] text-[#d92d20] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {deleteRatingMutation.isPending ? "삭제 중" : "삭제"}
+              </button>
+            )}
+          </div>
 
           {ratingError && (
             <p role="alert" className="text-[12px] text-red-600">
@@ -386,13 +446,12 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
             </p>
           )}
 
-          {savedRating && (
+          {savedMessage && (
             <p
               role="status"
               className="text-[12px] leading-5 text-[#606774]"
             >
-              {savedRating.rating}
-              {savedRating.review ? "점과 후기를" : "점을"} 저장했어요.
+              {savedMessage}
             </p>
           )}
 
