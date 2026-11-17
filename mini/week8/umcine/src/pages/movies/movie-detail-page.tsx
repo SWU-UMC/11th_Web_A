@@ -329,7 +329,7 @@ function MovieDetail({ movie }: { movie: TmdbMovieDetail }) {
           </button>
         </section>
 
-        {/* 기존 평점/후기 UI */}
+        {/* 내 평점: 없으면 등록(POST), 있으면 수정(PATCH)·삭제(DELETE)해요. */}
         <form
           onSubmit={handleSaveRating}
           className="flex min-w-0 flex-col gap-2 border-t border-[#e3e6eb] pt-6 md:col-span-2 xl:col-span-1 xl:min-h-[294px] xl:border-l xl:border-t-0 xl:pl-[30px] xl:pt-0"
