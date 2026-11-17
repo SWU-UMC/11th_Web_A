@@ -1,19 +1,43 @@
 import { Link } from "@tanstack/react-router";
 import type { TmdbMovie } from "../../api/movies/models.ts";
 import { cn } from "../../utils/cn.ts";
-import { useBookmarkStore } from "../../stores/bookmark-store.ts";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image.ts";
+import { useCreateFavoriteMutation } from "../../hooks/use-create-favorite-mutation.ts";
+import { useDeleteFavoriteMutation } from "../../hooks/use-delete-favorite-mutation.ts";
+import { getFavorites } from "../../api/favorites/get-favorites.ts";
+import { useAuthStore } from "../../stores/auth-store.ts";
+import { useQuery } from "@tanstack/react-query";
 
 interface MovieCardProps {
   movie: TmdbMovie;
 }
 
 export function MovieCard({ movie }: MovieCardProps) {
+  const accessToken = useAuthStore((state) => state.accessToken);
   const posterUrl = getTmdbPosterUrl(movie.poster_path);
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(movie.id),
-  );
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
+
+  const favoritesQuery = useQuery({
+    queryKey: ["favorites"],
+    queryFn: getFavorites,
+    enabled: Boolean(accessToken),
+  });
+
+  const createFavoriteMutation = useCreateFavoriteMutation();
+  const deleteFavoriteMutation = useDeleteFavoriteMutation();
+
+  const isBookmarked =
+    favoritesQuery.data?.result.some(
+      (favorite) => favorite.movieId === movie.id,
+    ) ?? false;
+
+  function handleBookmarkClick() {
+    if (isBookmarked) {
+      deleteFavoriteMutation.mutate(movie.id);
+    } else {
+      createFavoriteMutation.mutate({ movieId: movie.id });
+    }
+  }
+
   return (
     <li
       key={movie.id}
@@ -44,7 +68,7 @@ export function MovieCard({ movie }: MovieCardProps) {
             : "bg-black/50 backdrop-blur-sm text-white",
         )}
         aria-pressed={isBookmarked}
-        onClick={() => toggleBookmark(movie.id)}
+        onClick={handleBookmarkClick}
       >
         {isBookmarked ? (
           <img

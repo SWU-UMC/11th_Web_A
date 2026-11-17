@@ -2,15 +2,19 @@ import { useState } from "react";
 import { Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { getMovieDetail } from "../../api/movies/get-movie-detail.ts";
-import { useBookmarkStore } from "../../stores/bookmark-store.ts";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message.ts";
 import {
   getTmdbBackdropUrl,
   getTmdbPosterUrl,
 } from "../../utils/movies/tmdb-image.ts";
 import { useCreateRatingMutation } from "../../hooks/use-create-rating-mutation.ts";
+import { useCreateFavoriteMutation } from "../../hooks/use-create-favorite-mutation.ts";
+import { useDeleteFavoriteMutation } from "../../hooks/use-delete-favorite-mutation.ts";
+import { getFavorite } from "../../api/favorites/favorite.ts";
+import { useAuthStore } from "../../stores/auth-store.ts";
 
 export function MovieDetailPage() {
+  const accessToken = useAuthStore((state) => state.accessToken);
   const { movieId: movieIdParam } = useParams({ from: "/movies/$movieId" });
   const movieId = Number(movieIdParam);
   const isValidMovieId = Number.isInteger(movieId) && movieId > 0;
@@ -25,10 +29,24 @@ export function MovieDetailPage() {
 
   const createRatingMutation = useCreateRatingMutation();
 
-  const isBookmarked = useBookmarkStore((state) =>
-    state.bookmarkedMovieIds.includes(movieId),
-  );
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
+  const favoriteQuery = useQuery({
+    queryKey: ["favorites", movieId],
+    queryFn: () => getFavorite(movieId),
+    enabled: Boolean(accessToken) && isValidMovieId,
+  });
+
+  const createFavoriteMutation = useCreateFavoriteMutation();
+  const deleteFavoriteMutation = useDeleteFavoriteMutation();
+
+  const isBookmarked = favoriteQuery.data?.isFavorite ?? false;
+
+  function handleBookmarkClick() {
+    if (isBookmarked) {
+      deleteFavoriteMutation.mutate(movieId);
+    } else {
+      createFavoriteMutation.mutate({ movieId });
+    }
+  }
 
   if (!isValidMovieId) {
     return (
@@ -131,9 +149,16 @@ export function MovieDetailPage() {
               {movie.overview || "줄거리 정보가 없어요."}
             </p>
             <button
+              type="button"
               className="flex w-max items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-blue-700"
-              onClick={() => toggleBookmark(movieId)}
+              onClick={handleBookmarkClick}
               aria-pressed={isBookmarked}
+              disabled={
+                !accessToken ||
+                favoriteQuery.isPending ||
+                createFavoriteMutation.isPending ||
+                deleteFavoriteMutation.isPending
+              }
             >
               <img
                 src={

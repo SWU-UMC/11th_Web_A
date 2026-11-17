@@ -1,10 +1,10 @@
 import { useQueries, useQuery } from "@tanstack/react-query";
 import MovieGrid from "../../components/movies/movie-grid";
-import { useBookmarkStore } from "../../stores/bookmark-store";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { Link } from "@tanstack/react-router";
 import { getMe } from "../../api/members/me";
 import { useAuthStore } from "../../stores/auth-store";
+import { getFavorites } from "../../api/favorites/get-favorites";
 
 export function MyPage() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -16,10 +16,15 @@ export function MyPage() {
     retry: false,
   });
 
+  const favoritesQuery = useQuery({
+    queryKey: ["favorites"],
+    queryFn: getFavorites,
+    enabled: Boolean(accessToken),
+  });
+  const favoriteItems = favoritesQuery.data?.result ?? [];
   // 즐겨찾기 영화 데이터
-  const bookmarkedMovieIds = useBookmarkStore(
-    (state) => state.bookmarkedMovieIds,
-  );
+  const bookmarkedMovieIds = favoriteItems.map((favorite) => favorite.movieId);
+
   const bookmarkedMovieQueries = useQueries({
     queries: bookmarkedMovieIds.map((movieId) => ({
       queryKey: ["movies", "detail", movieId],
