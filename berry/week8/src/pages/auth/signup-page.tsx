@@ -86,7 +86,7 @@ export function SignupPage() {
         key === "email"
           ? await checkEmailDuplicate(form.email.trim())
           : await checkNicknameDuplicate(form.nickname.trim());
-      const isAvailable = response.available;
+      const isAvailable = response.result.available;
       setDuplicateCheck((prev) => ({
         ...prev,
         [key]: { ...prev[key], isAvailable },

@@ -1,7 +1,12 @@
 import { apiClient } from "../api-client";
 
 export interface CheckEmailDuplicateResponse {
-  available: boolean;
+  isSuccess: boolean;
+  code: string;
+  message: string;
+  result: {
+    available: boolean;
+  };
 }
 
 export function checkEmailDuplicate(email: string) {
