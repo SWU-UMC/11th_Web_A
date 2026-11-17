@@ -1,9 +1,24 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { getMe } from "../../api/members/me";
+import { useAuthStore } from "../../stores/auth-store";
 
 const navLinkClass =
   "text-[15px] text-gray-600 [&.active]:font-bold [&.active]:text-gray-900 [&.active]:underline [&.active]:underline-offset-4";
 
 export function Header() {
+  const accessToken = useAuthStore(
+    (state) => state.accessToken,
+  );
+
+  const meQuery = useQuery({
+    queryKey: ["members", "me"],
+    queryFn: getMe,
+    enabled: Boolean(accessToken),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
   return (
     <header className="h-16 border-b border-gray-200 bg-white">
       <div className="mx-auto flex h-full w-[min(1160px,calc(100%-48px))] items-center">
@@ -19,6 +34,7 @@ export function Header() {
               aria-hidden="true"
             />
           </span>
+
           <span>UMCine</span>
         </Link>
 
@@ -53,13 +69,26 @@ export function Header() {
             />
           </Link>
 
-          <Link
-            className="flex h-9 items-center rounded-md bg-blue-600 px-4 text-sm font-bold text-white"
-            to="/my"
-          >
-            마이페이지
-          </Link>
-          
+          {!accessToken ? (
+            <Link
+              className="flex h-9 items-center rounded-md bg-blue-600 px-4 text-sm font-bold text-white"
+              to="/login"
+            >
+              로그인
+            </Link>
+          ) : meQuery.isLoading ? (
+            <span
+              className="h-9 w-24 animate-pulse rounded-md bg-gray-200"
+              aria-label="회원 정보 불러오는 중"
+            />
+          ) : (
+            <Link
+              className="flex h-9 items-center rounded-md bg-blue-600 px-4 text-sm font-bold text-white"
+              to="/my"
+            >
+              마이페이지
+            </Link>
+          )}
         </div>
       </div>
     </header>
