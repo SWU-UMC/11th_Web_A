@@ -12,7 +12,7 @@ import {
   type SubmitEvent,
 } from "react";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
-import { useBookmarkStore } from "../../stores/bookmark-store";
+import { getFavorites } from "../../api/favorites/get-favorites";
 import { getTmdbPosterUrl } from "../../utils/movies/tmdb-image";
 
 
@@ -44,25 +44,37 @@ export function MyPage() {
   );
   const [currentPage, setCurrentPage] = useState(1);
 
-  const bookmarkedMovieIds = useBookmarkStore(
-    (state) => state.bookmarkedMovieIds,
-  );
+  const favoritesQuery = useQuery({
+    queryKey: ["favorites", "list"],
+    queryFn: getFavorites,
+    enabled: Boolean(accessToken),
+    staleTime: 30 * 1000,
+    retry: false,
+  });
+
+  const favoriteMovieIds =
+    favoritesQuery.data?.map(
+      (favorite) => favorite.movieId,
+    ) ?? [];
 
   const favoriteQueries = useQueries({
-    queries: bookmarkedMovieIds.map((movieId) => ({
+    queries: favoriteMovieIds.map((movieId) => ({
       queryKey: ["movies", "detail", movieId],
       queryFn: () => getMovieDetail(movieId),
       staleTime: 5 * 60 * 1000,
     })),
   });
 
-  const favoriteMovies = favoriteQueries.flatMap((query) =>
-    query.data ? [query.data] : [],
+  const favoriteMovies = favoriteQueries.flatMap(
+    (query) =>
+      query.data ? [query.data] : [],
   );
 
-  const isFavoritesLoading = favoriteQueries.some(
-    (query) => query.isPending,
-  );
+  const isFavoritesLoading =
+    favoritesQuery.isPending ||
+    favoriteQueries.some(
+      (query) => query.isPending,
+    );
 
   const totalPages = Math.max(
     1,
@@ -425,13 +437,17 @@ if (meQuery.isError || !meQuery.data) {
         <section className="mt-7">
           <h2 className="text-lg font-bold">내 즐겨찾기</h2>
 
-          {bookmarkedMovieIds.length === 0 ? (
-            <p className="mt-8 text-sm text-gray-500">
-              즐겨찾기한 영화가 없어요.
-            </p>
-          ) : isFavoritesLoading ? (
+          {isFavoritesLoading ? (
             <p className="mt-8 text-sm text-gray-500">
               즐겨찾기 영화를 불러오는 중이에요.
+            </p>
+          ) : favoritesQuery.isError ? (
+            <p className="mt-8 text-sm text-red-600">
+              즐겨찾기 목록을 불러오지 못했어요.
+            </p>
+          ) : favoriteMovieIds.length === 0 ? (
+            <p className="mt-8 text-sm text-gray-500">
+              즐겨찾기한 영화가 없어요.
             </p>
           ) : (
             <>
