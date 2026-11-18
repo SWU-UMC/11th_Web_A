@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "@tanstack/react-router";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { BookmarkButton } from "../../components/bookmark-button";
+import { RatingPanel } from "../../components/rating-panel";
 import { getMovieDetailErrorMessage } from "../../utils/movies/get-movie-detail-error-message";
 import {
   getTmdbBackdropUrl,
@@ -149,43 +150,8 @@ export function MovieDetailPage() {
             />
           </section>
 
-          <aside className="border-l border-gray-200 pl-6">
-            <h2 className="text-lg font-bold">내 평점</h2>
-            <p className="mt-2 text-xs text-gray-400">
-              별점은 필수, 후기는 선택이에요.
-            </p>
-
-            <div className="mt-3 flex gap-1" aria-label="평점 선택">
-              {[1, 2, 3, 4, 5].map((score) => (
-                <button
-                  key={score}
-                  className="grid size-8 place-items-center rounded-md border border-gray-200 bg-white"
-                  type="button"
-                  aria-label={`${score}점`}
-                >
-                  <img
-                    className="size-5"
-                    src="/icons/movie-icons/star-outline.svg"
-                    alt=""
-                    aria-hidden="true"
-                  />
-                </button>
-              ))}
-            </div>
-
-            <textarea
-              className="mt-2.5 h-20 w-full resize-none rounded-lg border border-gray-200 bg-white p-3 text-xs outline-none focus:border-blue-600"
-              placeholder="영화를 보고 느낀 점을 남겨보세요."
-              aria-label="평점 후기"
-            />
-
-            <button
-              className="mt-2 w-full rounded-md bg-gray-900 py-2.5 text-sm font-bold text-white"
-              type="button"
-            >
-              평점 저장
-            </button>
-          </aside>
+          <RatingPanel movieId={movie.id} />
+          
         </div>
       </main>
 
