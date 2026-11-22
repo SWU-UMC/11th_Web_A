@@ -55,10 +55,11 @@ export function Header() {
 
           <Link
             className="flex h-9 items-center rounded-md bg-blue-600 px-4 text-sm font-bold text-white"
-            to="/login"
+            to="/my"
           >
-            로그인
+            마이페이지
           </Link>
+          
         </div>
       </div>
     </header>
