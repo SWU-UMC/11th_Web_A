@@ -1,16 +1,18 @@
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import MovieCard from "../../components/movies/movie-card";
 import { getMovieDetail } from "../../api/movies/get-movie-detail";
 import { getMe } from "../../api/members/me";
+import { deleteFavorite, getMyFavorites } from "../../api/members/favorites";
 import { useAuthStore } from "../../stores/auth-store";
-// [수정 1] 옛날 bookmark-storage 대신 useBookmarkStore 불러오기
-import { useBookmarkStore } from "../../stores/bookmark-store";
 import type { Movie } from "../../types/movie";
 
 export function MyPage() {
+  const queryClient = useQueryClient();
   const accessToken = useAuthStore((state) => state.accessToken);
+  const [currentPage, setCurrentPage] = useState(1);
+
   const meQuery = useQuery({
     queryKey: ["members", "me"],
     queryFn: getMe,
@@ -19,29 +21,18 @@ export function MyPage() {
     retry: false,
   });
 
-  // [수정 2] Zustand 스토어에서 북마크된 영화 ID 목록과 토글 함수를 직접 가져옴
-  const bookmarkIds = useBookmarkStore((state) => state.bookmarkedMovieIds);
-  const toggleBookmark = useBookmarkStore((state) => state.toggleBookmark);
+  // 1. 서버 즐겨찾기 목록 + 각 영화의 TMDB 상세 정보를 한 번에 조회
+  // (TMDB에 없는 테스트용 movieId는 null로 건너뛰어 전체 실패 방지)
+  const bookmarkedMoviesQuery = useQuery({
+    queryKey: ["favorites", "mypage"],
+    enabled: Boolean(accessToken),
+    queryFn: async (): Promise<Movie[]> => {
+      const favorites = await getMyFavorites();
 
-  const [bookmarkedMovies, setBookmarkedMovies] = useState<Movie[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // 저장된 북마크 ID 목록으로 TMDB 영화 상세 정보 조회
-  useEffect(() => {
-    if (bookmarkIds.length === 0) {
-      setBookmarkedMovies([]);
-      return;
-    }
-
-    let isCancelled = false;
-
-    const loadBookmarkedMovies = async () => {
-      setIsLoading(true);
-      try {
-        const movies: Movie[] = await Promise.all(
-          bookmarkIds.map(async (id) => {
-            const detail = await getMovieDetail(id);
+      const results = await Promise.all(
+        favorites.map(async (item) => {
+          try {
+            const detail = await getMovieDetail(item.movieId);
 
             return {
               id: detail.id,
@@ -59,28 +50,30 @@ export function MyPage() {
               tagline: detail.tagline,
               overview: detail.overview,
               isBookmarked: true,
-            };
-          }),
-        );
+            } as Movie;
+          } catch {
+            return null;
+          }
+        }),
+      );
 
-        if (!isCancelled) {
-          setBookmarkedMovies(movies);
-        }
-      } catch (error) {
-        console.error("즐겨찾기 영화 목록을 불러오지 못했습니다:", error);
-      } finally {
-        if (!isCancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
+      return results.filter((movie): movie is Movie => movie !== null);
+    },
+  });
 
-    loadBookmarkedMovies();
+  // 2. 마이페이지 카드에서 북마크 해제 클릭 시 서버 삭제 (DELETE /favorites/{movieId})
+  const removeFavoriteMutation = useMutation({
+    mutationFn: (movieId: number) => deleteFavorite(movieId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["favorites"] });
+    },
+    onError: () => {
+      alert("즐겨찾기 해제에 실패했어요.");
+    },
+  });
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [bookmarkIds]);
+  const bookmarkedMovies = bookmarkedMoviesQuery.data ?? [];
+  const isLoading = bookmarkedMoviesQuery.isLoading;
 
   return (
     <div className="min-h-[calc(100vh-120px)] bg-[#f8f9fa] px-6 py-10">
@@ -146,8 +139,11 @@ export function MyPage() {
                 <MovieCard
                   key={movie.id}
                   movie={movie}
-                  // [수정 3] 스토어의 toggleBookmark를 그대로 연결
-                  onBookmarkToggle={toggleBookmark}
+                  onBookmarkToggle={(movieId) => {
+                    if (!removeFavoriteMutation.isPending) {
+                      removeFavoriteMutation.mutate(movieId);
+                    }
+                  }}
                 />
               ))}
             </div>

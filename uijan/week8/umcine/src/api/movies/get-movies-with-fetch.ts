@@ -1,3 +1,4 @@
+//(5) 브라우저 내장 fetch만을 이용해 인기 영화 목록(GET /movie/popular)을 요청하는 학습용 함수
 import { env } from "../../config/env";
 import type { TmdbMovieListResponse } from "./models";
 
