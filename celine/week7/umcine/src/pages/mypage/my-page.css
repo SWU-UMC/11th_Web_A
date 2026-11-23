@@ -1,0 +1,54 @@
+.my-page { flex: 1; display: flex; flex-direction: column; background: #f6f7f9; }
+.my-page__inner { width: 100%; max-width: 1200px; margin: 0 auto; padding: 22px 60px 80px; }
+.my-page__heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-bottom: 18px; border-bottom: 1px solid #e3e6eb; }
+.my-page__heading h1 { margin: 0; font-size: 30px; font-weight: 700; line-height: 1.35; letter-spacing: -1px; }
+.my-page__primary-button { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 0 14px; border: 0; border-radius: 6px; background: #2860f5; color: #fff; font-size: 11px; font-weight: 700; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.my-page__primary-button:hover:not(:disabled) { background: #1d4ed8; }
+.my-page__primary-button:disabled { background: #9cb7f7; cursor: not-allowed; }
+.my-page__primary-button:focus-visible { outline: 2px solid #2860f5; outline-offset: 3px; }
+
+.my-page__section { padding: 18px 0 22px; border-bottom: 1px solid #e3e6eb; }
+.my-page__section:last-child { border-bottom: 0; }
+.my-page__section h2 { margin: 0 0 14px; font-size: 13px; font-weight: 700; }
+.my-page__profile { display: flex; align-items: center; gap: 32px; }
+.my-page__info { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin: 0; }
+.my-page__info dt { margin-bottom: 4px; color: #929aa7; font-size: 9px; }
+.my-page__info dd { margin: 0; font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+.my-page__empty { padding: 48px 0; text-align: center; color: #707987; font-size: 13px; }
+
+.profile-avatar { display: inline-grid; place-items: center; flex-shrink: 0; overflow: hidden; border-radius: 50%; background: #e5e7eb; }
+.profile-avatar__image { width: 100%; height: 100%; object-fit: cover; }
+.profile-avatar__icon { width: 50%; height: 50%; }
+
+.my-page-edit { display: flex; flex-direction: column; flex: 1; }
+.my-page-edit__heading { border-bottom: 0; padding-bottom: 0; }
+.my-page-edit__description { margin: 6px 0 0; color: #707987; font-size: 11px; }
+.my-page-edit__body { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 28px 0 40px; }
+.my-page-edit__image { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 16px; }
+.my-page-edit__image strong { margin-top: 4px; font-size: 12px; }
+.my-page-edit__image > span { color: #929aa7; font-size: 9px; }
+.my-page-edit__image-picker { position: relative; display: inline-flex; border-radius: 50%; cursor: pointer; }
+.my-page-edit__image-picker input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.my-page-edit__image-picker:focus-within { outline: 2px solid #2860f5; outline-offset: 3px; }
+.my-page-edit__image-badge { position: absolute; right: -2px; bottom: -2px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+.my-page-edit__image-badge img { width: 18px; height: 18px; }
+.my-page-edit__fields .signup-input input[readonly] { color: #374151; }
+
+.my-page-edit__danger { margin-top: auto; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 12px; border: 1px solid #e5484d; border-radius: 6px; background: #f6e3e5; }
+.my-page-edit__danger h2 { margin: 0 0 6px; color: #c62828; font-size: 11px; font-weight: 700; }
+.my-page-edit__danger p { margin: 0; color: #c62828; font-size: 8px; }
+.my-page-edit__danger button { flex-shrink: 0; min-height: 30px; padding: 0 12px; border: 1px solid #e5484d; border-radius: 5px; background: #fff; color: #c62828; font-size: 11px; font-weight: 700; cursor: pointer; }
+.my-page-edit__danger button:hover { background: #fdf2f3; }
+
+@media (max-width: 900px) {
+  .my-page__inner { padding: 22px 32px 64px; }
+}
+@media (max-width: 600px) {
+  .my-page__inner { padding: 24px 16px 48px; }
+  .my-page__heading h1 { font-size: 24px; }
+  .my-page__profile { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .my-page__info { grid-template-columns: 1fr; }
+  .my-page-edit__heading { flex-direction: column; align-items: flex-start; }
+  .my-page-edit__body { grid-template-columns: 1fr; gap: 24px; }
+  .my-page-edit__danger { flex-direction: column; align-items: flex-start; }
+}
