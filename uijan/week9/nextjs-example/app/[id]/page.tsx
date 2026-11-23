@@ -1,8 +1,11 @@
-// [id]/page.tsx
 import { Suspense } from "react";
 
 interface DynamicPageProps {
-    params : Promise<{id: string}>;
+  params: Promise<{ id: string }>;
+}
+
+interface Todo {
+  title: string;
 }
 
 export default function DynamicPage({ params }: DynamicPageProps) {
@@ -15,6 +18,20 @@ export default function DynamicPage({ params }: DynamicPageProps) {
 
 async function DynamicPageScreen({ params }: DynamicPageProps) {
   const { id } = await params;
+  const response = await fetch(
+    `https://jsonplaceholder.typicode.com/todos/${id}`,
+  );
 
-  return <div>This is Dynamic Page. Current id is {id}.</div>;
+  if (!response.ok) {
+    throw new Error("할 일을 불러오지 못했어요.");
+  }
+
+  const todo: Todo = await response.json();
+
+  return (
+    <div>
+      <h1>Todo {id}</h1>
+      <p>{todo.title}</p>
+    </div>
+  );
 }
